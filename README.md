@@ -19,6 +19,11 @@ A static single-page web app for [Industria](https://industria.be) (student asso
 
 Separate tab for the communication team. Every event type has a standard **post plan** (announcement, reminder, day-of story, aftermovie, ...) with an offset in days and a **default posting time** (e.g. 18:00). Add activities (or import them, see below) and the full posting schedule is generated. If two posts land on the same day at the same time, the later one is automatically shifted one hour and flagged, so posts never overlap. Times remain editable per post. The .ics export creates **30-minute calendar blocks** (e.g. 18:00–18:30) so posts are clearly visible in Google Calendar.
 
+The communication Excel exports are **organised per semester week** (semester start dates are configurable in `config.json` / the Admin tab):
+
+1. **Agenda per week** — every activity of the year grouped per week, with a colour-coded "Comm request" status column to tick off that the organising function submitted its communication request. The same status can be tracked in the overview table ("req" dropdown per activity).
+2. **Post schedule per week** — every post chronologically per week (date, time, post, activity, responsible, status). Times are guaranteed collision-free: any remaining same-moment conflicts are resolved automatically at export.
+
 ### Bulk import (Excel/CSV)
 
 Both planners have an **Import Excel/CSV** button so you don't have to type the whole year plan by hand:

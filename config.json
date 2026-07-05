@@ -33,6 +33,7 @@
     { "id": "headtapper", "name": "Arrange headtapper", "defaultWeeks": 4 },
     { "id": "enrollmentForms", "name": "Make Enrollment forms (to be submitted in communication request)", "defaultWeeks": 4 }
   ],
+  "academicYear": { "semester1Start": "2026-09-21", "semester2Start": "2027-02-08" },
   "commChannels": ["Instagram post", "Instagram story", "Facebook event", "Mailing", "Website"],
   "eventTypes": [
     {
