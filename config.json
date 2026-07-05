@@ -1,0 +1,64 @@
+{
+  "roles": [
+    "Praeses / Vice-praeses",
+    "Ab Actis",
+    "Quaestor",
+    "Bedrijvenrelaties",
+    "Onderwijs",
+    "Kursusdienst",
+    "Events",
+    "Sport",
+    "Ontspanning",
+    "Eerstejaarswerking",
+    "Cultuur",
+    "International",
+    "Communicatie",
+    "Support",
+    "IT",
+    "Fakbar"
+  ],
+  "deadlineTypes": [
+    { "id": "communication", "name": "Communication request", "defaultWeeks": 4 },
+    { "id": "material", "name": "Material request", "defaultWeeks": 4 },
+    { "id": "materialOrder", "name": "Material order request (new purchase)", "defaultWeeks": 6 },
+    { "id": "drinks", "name": "Drink request", "defaultWeeks": 2 },
+    { "id": "food", "name": "Food request", "defaultWeeks": 2 },
+    { "id": "van", "name": "Industria van request", "defaultWeeks": 3 },
+    { "id": "province", "name": "Province request", "defaultWeeks": 8 },
+    { "id": "publicDomain", "name": "Public domain occupation request", "defaultWeeks": 8 },
+    { "id": "room", "name": "Room request", "defaultWeeks": 6 }
+  ],
+  "eventTypes": [
+    {
+      "id": "bsa",
+      "name": "BSA",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "material", "weeks": 4 },
+        { "type": "drinks", "weeks": 2 },
+        { "type": "food", "weeks": 2 },
+        { "type": "room", "weeks": 6 }
+      ]
+    },
+    {
+      "id": "cantus",
+      "name": "Cantus",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "drinks", "weeks": 3 },
+        { "type": "material", "weeks": 4 },
+        { "type": "room", "weeks": 6 }
+      ]
+    },
+    {
+      "id": "fakfeest",
+      "name": "Fakfeest",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "drinks", "weeks": 3 },
+        { "type": "material", "weeks": 4 },
+        { "type": "publicDomain", "weeks": 8 }
+      ]
+    }
+  ]
+}

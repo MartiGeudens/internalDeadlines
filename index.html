@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Industria Deadline Planner</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+  :root {
+    --ind-dark: #1d3d33;
+    --ind-green: #2e6b52;
+    --ind-light: #eef4f1;
+    --ind-accent: #d9a441;
+    --done: #c6efce; --done-t: #276738;
+    --busy: #ffeb9c; --busy-t: #7a5c00;
+    --todo: #ffc7ce; --todo-t: #9c0006;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--ind-light); color: #222; }
+  header { background: var(--ind-dark); color: #fff; padding: 18px 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-size: 1.3rem; margin: 0; font-weight: 600; }
+  header .sub { opacity: .75; font-size: .85rem; }
+  nav { background: var(--ind-green); padding: 0 28px; display: flex; gap: 4px; }
+  nav button { background: none; border: none; color: #fff; padding: 12px 18px; cursor: pointer; font-size: .95rem; opacity: .8; border-bottom: 3px solid transparent; }
+  nav button.active { opacity: 1; border-bottom-color: var(--ind-accent); font-weight: 600; }
+  main { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
+  .card { background: #fff; border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .card h2 { margin: 0 0 14px; font-size: 1.05rem; color: var(--ind-dark); }
+  label { display: block; font-size: .8rem; font-weight: 600; color: #555; margin-bottom: 3px; }
+  input, select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: .92rem; width: 100%; background: #fff; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 160px; }
+  button.primary { background: var(--ind-green); color: #fff; border: none; border-radius: 6px; padding: 10px 20px; font-size: .95rem; cursor: pointer; font-weight: 600; }
+  button.primary:hover { background: var(--ind-dark); }
+  button.secondary { background: #fff; color: var(--ind-green); border: 1px solid var(--ind-green); border-radius: 6px; padding: 9px 18px; font-size: .9rem; cursor: pointer; }
+  button.danger { background: none; border: none; color: #b33; cursor: pointer; font-size: .85rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; }
+  tr.activity-row { background: var(--ind-light); font-weight: 700; }
+  tr.activity-row td { border-top: 2px solid var(--ind-green); }
+  .status-select { width: auto; padding: 4px 8px; border-radius: 12px; font-weight: 600; border: 1px solid rgba(0,0,0,.15); }
+  .status-Done { background: var(--done); color: var(--done-t); }
+  .status-Busy { background: var(--busy); color: var(--busy-t); }
+  .status-ToDo { background: var(--todo); color: var(--todo-t); }
+  .warn { color: #b33; font-size: .78rem; }
+  .muted { color: #888; font-size: .8rem; }
+  .checklist { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px; margin-top: 8px; }
+  .checklist .item { display: flex; align-items: center; gap: 8px; font-size: .88rem; }
+  .checklist input[type=checkbox] { width: auto; }
+  .checklist input[type=number] { width: 60px; padding: 4px 6px; }
+  .export-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .hidden { display: none; }
+  .admin-grid { display: grid; gap: 8px; }
+  .admin-row { display: flex; gap: 8px; align-items: center; }
+  .admin-row input[type=text] { flex: 2; }
+  .admin-row input[type=number] { width: 80px; }
+  .tag { display: inline-block; background: var(--ind-light); border-radius: 10px; padding: 2px 10px; font-size: .78rem; margin: 2px; }
+  .et-block { border: 1px solid #e2e8e5; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .et-block h3 { margin: 0 0 8px; font-size: .95rem; display: flex; justify-content: space-between; }
+  footer { text-align: center; color: #999; font-size: .8rem; padding: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Industria Deadline Planner</h1>
+  <span class="sub">Internal deadlines per activity &mdash; plan, track &amp; export</span>
+</header>
+<nav>
+  <button id="tab-planner" class="active" onclick="showTab('planner')">Planner</button>
+  <button id="tab-admin" onclick="showTab('admin')">Admin</button>
+</nav>
+<main>
+
+<!-- ==================== PLANNER ==================== -->
+<div id="view-planner">
+  <div class="card">
+    <h2>1. Your role</h2>
+    <div class="row">
+      <div style="max-width:320px">
+        <label>Function / team</label>
+        <select id="roleSelect"></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Add activity</h2>
+    <div class="row">
+      <div><label>Activity name</label><input id="actName" placeholder="e.g. Opening BSA"></div>
+      <div><label>Main responsible</label><input id="actResp" placeholder="e.g. Marti"></div>
+      <div><label>Event type</label><select id="actType"></select></div>
+      <div><label>Date of activity</label><input type="date" id="actDate"></div>
+    </div>
+    <div id="otherPanel" class="hidden" style="margin-top:12px">
+      <label>Select the deadlines for this activity (weeks before the event)</label>
+      <div class="checklist" id="otherChecklist"></div>
+      <div class="row" style="margin-top:10px; align-items:flex-end">
+        <div style="max-width:260px"><label>Custom deadline name</label><input id="customDlName" placeholder="e.g. DJ booking"></div>
+        <div style="max-width:110px"><label>Weeks before</label><input type="number" id="customDlWeeks" min="0" value="4"></div>
+        <div style="max-width:120px"><button class="secondary" onclick="addCustomDeadline()">+ Add</button></div>
+      </div>
+      <div id="customDlList"></div>
+    </div>
+    <div style="margin-top:16px"><button class="primary" onclick="addActivity()">Add activity</button></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Year overview</h2>
+    <p class="muted" id="emptyMsg">No activities yet. Add your activities above, then export everything at once.</p>
+    <table id="overviewTable" class="hidden">
+      <thead>
+        <tr><th>Activity / deadline</th><th>Responsible</th><th>Date</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody id="overviewBody"></tbody>
+    </table>
+    <div class="export-bar" style="margin-top:16px">
+      <button class="primary" onclick="exportExcel()">&#11123; Export Excel (.xlsx)</button>
+      <button class="secondary" onclick="exportICS()">&#128197; Export calendar (.ics)</button>
+      <span class="muted">Excel is grouped per activity with colored status column.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ADMIN ==================== -->
+<div id="view-admin" class="hidden">
+  <div id="adminLock" class="card">
+    <h2>&#128274; Admin access</h2>
+    <p class="muted">This section is protected. Enter the admin password to manage deadline rules.</p>
+    <div class="row" style="align-items:flex-end; max-width:480px">
+      <div><label>Password</label><input type="password" id="adminPw" onkeydown="if(event.key==='Enter')unlockAdmin()"></div>
+      <div style="max-width:120px"><button class="primary" onclick="unlockAdmin()">Unlock</button></div>
+    </div>
+    <p class="warn hidden" id="adminPwErr" style="margin-bottom:0">Wrong password.</p>
+  </div>
+  <div id="adminContent" class="hidden">
+  <div class="card">
+    <h2>Deadline types (default weeks before event)</h2>
+    <div class="admin-grid" id="adminDeadlineTypes"></div>
+    <button class="secondary" style="margin-top:10px" onclick="adminAddDeadlineType()">+ Add deadline type</button>
+  </div>
+  <div class="card">
+    <h2>Event types</h2>
+    <div id="adminEventTypes"></div>
+    <button class="secondary" onclick="adminAddEventType()">+ Add event type</button>
+  </div>
+  <div class="card">
+    <h2>Save configuration</h2>
+    <p class="muted">Changes apply immediately in this session. To make them permanent for everyone, publish <b>config.json</b> directly to GitHub below, or download it and commit manually.</p>
+    <div class="export-bar">
+      <button class="secondary" onclick="downloadConfig()">&#11123; Download config.json</button>
+      <label class="secondary" style="cursor:pointer; margin:0">
+        Upload config.json <input type="file" accept=".json" style="display:none" onchange="uploadConfig(event)">
+      </label>
+    </div>
+  </div>
+  <div class="card">
+    <h2>&#128640; Publish directly to GitHub</h2>
+    <p class="muted">Commits <b>config.json</b> straight to the repository (triggers automatic redeploy of this site). Requires a fine-grained personal access token with <i>Contents: read &amp; write</i> on this repo only &mdash; the token stays in this browser tab and is never stored or committed.</p>
+    <div class="row">
+      <div><label>Owner</label><input id="ghOwner" placeholder="e.g. martigeudens"></div>
+      <div><label>Repository</label><input id="ghRepo" placeholder="e.g. internalDeadlines"></div>
+      <div style="max-width:130px"><label>Branch</label><input id="ghBranch" value="main"></div>
+    </div>
+    <div class="row" style="margin-top:10px; align-items:flex-end">
+      <div><label>GitHub token</label><input type="password" id="ghToken" placeholder="github_pat_..."></div>
+      <div style="max-width:220px"><button class="primary" onclick="commitToGitHub()">Commit config.json</button></div>
+    </div>
+    <p id="ghStatus" class="muted" style="margin-bottom:0"></p>
+  </div>
+  </div><!-- /adminContent -->
+</div>
+
+</main>
+<footer>Industria &mdash; Faculteit Industri&euml;le Ingenieurswetenschappen KU Leuven Campus Groep T</footer>
+
+<script>
+/* ---------- Default config (fallback when config.json can't be fetched, e.g. file://) ---------- */
+const DEFAULT_CONFIG = {
+  roles: ["Praeses / Vice-praeses","Ab Actis","Quaestor","Bedrijvenrelaties","Onderwijs","Kursusdienst","Events","Sport","Ontspanning","Eerstejaarswerking","Cultuur","International","Communicatie","Support","IT","Fakbar"],
+  deadlineTypes: [
+    { id:"communication", name:"Communication request", defaultWeeks:4 },
+    { id:"material", name:"Material request", defaultWeeks:4 },
+    { id:"materialOrder", name:"Material order request (new purchase)", defaultWeeks:6 },
+    { id:"drinks", name:"Drink request", defaultWeeks:2 },
+    { id:"food", name:"Food request", defaultWeeks:2 },
+    { id:"van", name:"Industria van request", defaultWeeks:3 },
+    { id:"province", name:"Province request", defaultWeeks:8 },
+    { id:"publicDomain", name:"Public domain occupation request", defaultWeeks:8 },
+    { id:"room", name:"Room request", defaultWeeks:6 }
+  ],
+  eventTypes: [
+    { id:"bsa", name:"BSA", deadlines:[{type:"communication",weeks:4},{type:"material",weeks:4},{type:"drinks",weeks:2},{type:"food",weeks:2},{type:"room",weeks:6}] },
+    { id:"cantus", name:"Cantus", deadlines:[{type:"communication",weeks:4},{type:"drinks",weeks:3},{type:"material",weeks:4},{type:"room",weeks:6}] },
+    { id:"fakfeest", name:"Fakfeest", deadlines:[{type:"communication",weeks:4},{type:"drinks",weeks:3},{type:"material",weeks:4},{type:"publicDomain",weeks:8}] }
+  ]
+};
+
+let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+let activities = [];   // {id,name,resp,typeName,date,deadlines:[{name,weeks,date,status,resp}]}
+let customDeadlines = []; // for "Other" form
+let nextId = 1;
+
+/* ---------- init ---------- */
+fetch('config.json').then(r => r.ok ? r.json() : null).then(c => { if (c) config = c; renderAll(); }).catch(() => renderAll());
+
+function renderAll(){
+  renderRoleSelect(); renderTypeSelect(); renderOtherChecklist(); renderAdmin(); renderOverview();
+  try {
+    const gh = JSON.parse(localStorage.getItem('ghRepoInfo'));
+    if (gh){ ghOwner.value = gh.owner; ghRepo.value = gh.repo; ghBranch.value = gh.branch; }
+  } catch {}
+}
+
+function showTab(t){
+  document.getElementById('view-planner').classList.toggle('hidden', t!=='planner');
+  document.getElementById('view-admin').classList.toggle('hidden', t!=='admin');
+  document.getElementById('tab-planner').classList.toggle('active', t==='planner');
+  document.getElementById('tab-admin').classList.toggle('active', t==='admin');
+  if (t === 'admin') refreshAdminLock();
+}
+
+/* ---------- admin access ----------
+   The placeholder below is replaced at deploy time by the GitHub Action with
+   sha256(secrets.ADMIN_PASSWORD). If it is still the placeholder (local use
+   or secret not set), the admin page is open. */
+const ADMIN_HASH = '__ADMIN_HASH__';
+let adminUnlocked = false;
+function adminIsOpen(){ return adminUnlocked || ADMIN_HASH.startsWith('__'); }
+function refreshAdminLock(){
+  document.getElementById('adminLock').classList.toggle('hidden', adminIsOpen());
+  document.getElementById('adminContent').classList.toggle('hidden', !adminIsOpen());
+}
+async function sha256hex(s){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+async function unlockAdmin(){
+  const pw = document.getElementById('adminPw').value;
+  const ok = (await sha256hex(pw)) === ADMIN_HASH.toLowerCase();
+  document.getElementById('adminPwErr').classList.toggle('hidden', ok);
+  if (ok){ adminUnlocked = true; document.getElementById('adminPw').value = ''; refreshAdminLock(); }
+}
+
+/* ---------- publish config.json to GitHub ---------- */
+async function commitToGitHub(){
+  const owner = document.getElementById('ghOwner').value.trim();
+  const repo = document.getElementById('ghRepo').value.trim();
+  const branch = document.getElementById('ghBranch').value.trim() || 'main';
+  const token = document.getElementById('ghToken').value.trim();
+  const status = document.getElementById('ghStatus');
+  if (!owner || !repo || !token){ status.innerHTML = '<span class="warn">Fill in owner, repository and token.</span>'; return; }
+  localStorage.setItem('ghRepoInfo', JSON.stringify({ owner, repo, branch }));
+  const headers = { 'Authorization':'Bearer '+token, 'Accept':'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28' };
+  const api = `https://api.github.com/repos/${owner}/${repo}/contents/config.json`;
+  status.textContent = 'Committing…';
+  try {
+    let sha;
+    const cur = await fetch(`${api}?ref=${branch}`, { headers });
+    if (cur.ok) sha = (await cur.json()).sha;
+    const body = {
+      message: 'Update deadline config via admin page',
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(config, null, 2)))),
+      branch
+    };
+    if (sha) body.sha = sha;
+    const res = await fetch(api, { method:'PUT', headers, body: JSON.stringify(body) });
+    if (res.ok){
+      const j = await res.json();
+      status.innerHTML = `&#9989; Committed! (<a href="${j.commit.html_url}" target="_blank">view commit</a>) The site redeploys automatically in ~1 minute.`;
+    } else {
+      const err = await res.json().catch(() => ({}));
+      status.innerHTML = `<span class="warn">GitHub error ${res.status}: ${esc(err.message || 'unknown')}. Check token permissions (Contents: read &amp; write) and repo name.</span>`;
+    }
+  } catch(e){ status.innerHTML = `<span class="warn">Network error: ${esc(e.message)}</span>`; }
+}
+
+function renderRoleSelect(){
+  const s = document.getElementById('roleSelect');
+  s.innerHTML = config.roles.map(r => `<option>${esc(r)}</option>`).join('');
+}
+function renderTypeSelect(){
+  const s = document.getElementById('actType');
+  s.innerHTML = config.eventTypes.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('') + '<option value="__other">Other…</option>';
+  s.onchange = () => document.getElementById('otherPanel').classList.toggle('hidden', s.value !== '__other');
+}
+function renderOtherChecklist(){
+  const c = document.getElementById('otherChecklist');
+  c.innerHTML = config.deadlineTypes.map(d => `
+    <div class="item">
+      <input type="checkbox" id="chk_${d.id}">
+      <label for="chk_${d.id}" style="margin:0;font-weight:400;flex:1">${esc(d.name)}</label>
+      <input type="number" id="wk_${d.id}" min="0" value="${d.defaultWeeks}"> <span class="muted">wk</span>
+    </div>`).join('');
+}
+function addCustomDeadline(){
+  const n = document.getElementById('customDlName').value.trim();
+  const w = parseInt(document.getElementById('customDlWeeks').value) || 0;
+  if (!n) return alert('Give the custom deadline a name.');
+  customDeadlines.push({ name:n, weeks:w });
+  document.getElementById('customDlName').value = '';
+  document.getElementById('customDlList').innerHTML = customDeadlines.map(d => `<span class="tag">${esc(d.name)} (${d.weeks} wk)</span>`).join('');
+}
+
+/* ---------- activities ---------- */
+function addActivity(){
+  const name = document.getElementById('actName').value.trim();
+  const resp = document.getElementById('actResp').value.trim();
+  const typeId = document.getElementById('actType').value;
+  const dateStr = document.getElementById('actDate').value;
+  if (!name || !dateStr) return alert('Fill in at least an activity name and a date.');
+  const eventDate = new Date(dateStr + 'T12:00:00');
+
+  let dls = [], typeName;
+  if (typeId === '__other'){
+    typeName = 'Other';
+    config.deadlineTypes.forEach(d => {
+      if (document.getElementById('chk_'+d.id).checked)
+        dls.push({ name:d.name, weeks: parseInt(document.getElementById('wk_'+d.id).value)||0 });
+    });
+    dls = dls.concat(customDeadlines);
+    if (!dls.length) return alert('Select at least one deadline for this activity.');
+  } else {
+    const et = config.eventTypes.find(e => e.id === typeId);
+    typeName = et.name;
+    dls = et.deadlines.map(d => {
+      const dt = config.deadlineTypes.find(t => t.id === d.type);
+      return { name: dt ? dt.name : d.type, weeks: d.weeks };
+    });
+  }
+
+  const deadlines = dls.map(d => {
+    const dd = new Date(eventDate); dd.setDate(dd.getDate() - d.weeks*7);
+    return { name:d.name, weeks:d.weeks, date:dd, status:'To Do', resp:resp };
+  }).sort((a,b) => a.date - b.date);
+
+  activities.push({ id:nextId++, name, resp, typeName, date:eventDate, deadlines });
+  activities.sort((a,b) => a.date - b.date);
+
+  document.getElementById('actName').value = '';
+  document.getElementById('actDate').value = '';
+  customDeadlines = [];
+  document.getElementById('customDlList').innerHTML = '';
+  config.deadlineTypes.forEach(d => { const c = document.getElementById('chk_'+d.id); if (c) c.checked = false; });
+  renderOverview();
+}
+
+function removeActivity(id){ activities = activities.filter(a => a.id !== id); renderOverview(); }
+function setStatus(aid, i, val){ const a = activities.find(x => x.id === aid); a.deadlines[i].status = val; renderOverview(); }
+function setDlResp(aid, i, val){ const a = activities.find(x => x.id === aid); a.deadlines[i].resp = val; }
+
+function fmt(d){ return d.toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }); }
+function warnings(d){
+  const w = [];
+  if (d < new Date()) w.push('in the past!');
+  else if (d.getDay() === 0 || d.getDay() === 6) w.push('weekend');
+  return w.length ? ` <span class="warn">&#9888; ${w.join(', ')}</span>` : '';
+}
+
+function renderOverview(){
+  const tbl = document.getElementById('overviewTable'), body = document.getElementById('overviewBody');
+  document.getElementById('emptyMsg').classList.toggle('hidden', activities.length > 0);
+  tbl.classList.toggle('hidden', activities.length === 0);
+  body.innerHTML = activities.map(a => {
+    let html = `<tr class="activity-row">
+      <td>${esc(a.name)} <span class="muted">(${esc(a.typeName)})</span></td>
+      <td>${esc(a.resp)}</td>
+      <td>${fmt(a.date)}</td>
+      <td></td>
+      <td><button class="danger" onclick="removeActivity(${a.id})">remove</button></td></tr>`;
+    html += a.deadlines.map((d,i) => `<tr>
+      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${d.weeks} wk before)</span>${warnings(d.date)}</td>
+      <td><input value="${esc(d.resp)}" style="max-width:150px;padding:4px 8px" onchange="setDlResp(${a.id},${i},this.value)"></td>
+      <td>${fmt(d.date)}</td>
+      <td><select class="status-select status-${d.status.replace(' ','')}" onchange="setStatus(${a.id},${i},this.value)">
+        ${['To Do','Busy','Done'].map(s => `<option ${s===d.status?'selected':''}>${s}</option>`).join('')}
+      </select></td><td></td></tr>`).join('');
+    return html;
+  }).join('');
+}
+
+/* ---------- Excel export ---------- */
+const STATUS_FILL = { 'Done':'FFC6EFCE', 'Busy':'FFFFEB9C', 'To Do':'FFFFC7CE' };
+const STATUS_FONT = { 'Done':'FF276738', 'Busy':'FF7A5C00', 'To Do':'FF9C0006' };
+
+async function exportExcel(){
+  if (!activities.length) return alert('Add at least one activity first.');
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Deadlines', { views:[{ state:'frozen', ySplit:0 }] });
+  ws.columns = [{ width:42 }, { width:26 }, { width:16 }, { width:12 }];
+  const border = { top:{style:'thin',color:{argb:'FFDDDDDD'}}, bottom:{style:'thin',color:{argb:'FFDDDDDD'}} };
+
+  activities.forEach(a => {
+    const hr = ws.addRow([a.name, a.resp, fmt(a.date), 'Status']);
+    hr.font = { bold:true };
+    hr.eachCell(c => { c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFEEF4F1'} }; c.border = { top:{style:'medium',color:{argb:'FF2E6B52'}} }; });
+    a.deadlines.forEach(d => {
+      const r = ws.addRow([d.name, d.resp, fmt(d.date), d.status]);
+      r.eachCell(c => c.border = border);
+      const sc = r.getCell(4);
+      sc.fill = { type:'pattern', pattern:'solid', fgColor:{argb:STATUS_FILL[d.status]} };
+      sc.font = { color:{argb:STATUS_FONT[d.status]}, bold:true };
+      sc.dataValidation = { type:'list', allowBlank:false, formulae:['"To Do,Busy,Done"'] };
+    });
+  });
+
+  // conditional formatting so colors update when status changes in Excel
+  const range = `D1:D${ws.rowCount}`;
+  ws.addConditionalFormatting({ ref:range, rules:[
+    { type:'containsText', operator:'containsText', text:'Done', priority:1, style:{ fill:{type:'pattern',pattern:'solid',bgColor:{argb:'FFC6EFCE'}}, font:{color:{argb:'FF276738'}} } },
+    { type:'containsText', operator:'containsText', text:'Busy', priority:2, style:{ fill:{type:'pattern',pattern:'solid',bgColor:{argb:'FFFFEB9C'}}, font:{color:{argb:'FF7A5C00'}} } },
+    { type:'containsText', operator:'containsText', text:'To Do', priority:3, style:{ fill:{type:'pattern',pattern:'solid',bgColor:{argb:'FFFFC7CE'}}, font:{color:{argb:'FF9C0006'}} } }
+  ]});
+
+  const buf = await wb.xlsx.writeBuffer();
+  download(new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    `Industria_deadlines_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+/* ---------- ICS export ---------- */
+function exportICS(){
+  if (!activities.length) return alert('Add at least one activity first.');
+  const p = d => d.toISOString().slice(0,10).replace(/-/g,'');
+  let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Industria//DeadlinePlanner//EN\r\n';
+  activities.forEach(a => {
+    a.deadlines.forEach((d,i) => {
+      const end = new Date(d.date); end.setDate(end.getDate()+1);
+      ics += `BEGIN:VEVENT\r\nUID:${a.id}-${i}@industria.be\r\nDTSTAMP:${p(new Date())}T000000Z\r\nDTSTART;VALUE=DATE:${p(d.date)}\r\nDTEND;VALUE=DATE:${p(end)}\r\nSUMMARY:[${icsEsc(a.name)}] ${icsEsc(d.name)}\r\nDESCRIPTION:Deadline for ${icsEsc(a.name)} (${icsEsc(a.typeName)}) on ${fmt(a.date)}. Responsible: ${icsEsc(d.resp||a.resp)}\r\nEND:VEVENT\r\n`;
+    });
+  });
+  ics += 'END:VCALENDAR\r\n';
+  download(new Blob([ics], { type:'text/calendar' }), 'Industria_deadlines.ics');
+}
+function icsEsc(s){ return String(s).replace(/([,;\\])/g, '\\$1'); }
+
+/* ---------- admin ---------- */
+function renderAdmin(){
+  const dt = document.getElementById('adminDeadlineTypes');
+  dt.innerHTML = config.deadlineTypes.map((d,i) => `
+    <div class="admin-row">
+      <input type="text" value="${esc(d.name)}" onchange="config.deadlineTypes[${i}].name=this.value; renderOtherChecklist()">
+      <input type="number" min="0" value="${d.defaultWeeks}" onchange="config.deadlineTypes[${i}].defaultWeeks=parseInt(this.value)||0; renderOtherChecklist()">
+      <span class="muted">weeks</span>
+      <button class="danger" onclick="config.deadlineTypes.splice(${i},1); renderAll()">remove</button>
+    </div>`).join('');
+
+  const et = document.getElementById('adminEventTypes');
+  et.innerHTML = config.eventTypes.map((e,i) => `
+    <div class="et-block">
+      <h3><input type="text" value="${esc(e.name)}" style="max-width:240px" onchange="config.eventTypes[${i}].name=this.value; renderTypeSelect()">
+        <button class="danger" onclick="config.eventTypes.splice(${i},1); renderAll()">remove event type</button></h3>
+      <div class="checklist">
+        ${config.deadlineTypes.map(d => {
+          const dl = e.deadlines.find(x => x.type === d.id);
+          return `<div class="item">
+            <input type="checkbox" ${dl?'checked':''} onchange="adminToggle(${i},'${d.id}',this.checked)">
+            <span style="flex:1">${esc(d.name)}</span>
+            <input type="number" min="0" value="${dl?dl.weeks:d.defaultWeeks}" ${dl?'':'disabled'} onchange="adminWeeks(${i},'${d.id}',this.value)"> <span class="muted">wk</span>
+          </div>`; }).join('')}
+      </div>
+    </div>`).join('');
+}
+function adminToggle(ei, tid, on){
+  const e = config.eventTypes[ei];
+  if (on){ const dt = config.deadlineTypes.find(d => d.id === tid); e.deadlines.push({ type:tid, weeks:dt.defaultWeeks }); }
+  else e.deadlines = e.deadlines.filter(d => d.type !== tid);
+  renderAdmin();
+}
+function adminWeeks(ei, tid, v){
+  const dl = config.eventTypes[ei].deadlines.find(d => d.type === tid);
+  if (dl) dl.weeks = parseInt(v)||0;
+}
+function adminAddDeadlineType(){
+  const name = prompt('Name of the new deadline type:'); if (!name) return;
+  const w = parseInt(prompt('Default weeks before the event:', '4'))||4;
+  config.deadlineTypes.push({ id:'custom_'+Date.now(), name, defaultWeeks:w });
+  renderAll();
+}
+function adminAddEventType(){
+  const name = prompt('Name of the new event type:'); if (!name) return;
+  config.eventTypes.push({ id:'evt_'+Date.now(), name, deadlines:[] });
+  renderAll();
+}
+function downloadConfig(){
+  download(new Blob([JSON.stringify(config, null, 2)], { type:'application/json' }), 'config.json');
+}
+function uploadConfig(ev){
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { try { config = JSON.parse(r.result); renderAll(); alert('Config loaded.'); } catch { alert('Invalid JSON file.'); } };
+  r.readAsText(f);
+}
+
+/* ---------- utils ---------- */
+function download(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
