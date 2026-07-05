@@ -58,6 +58,12 @@
   .et-block { border: 1px solid #e2e8e5; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
   .et-block h3 { margin: 0 0 8px; font-size: .95rem; display: flex; justify-content: space-between; }
   footer { text-align: center; color: #999; font-size: .8rem; padding: 20px; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+  .overlay .card { max-height: 85vh; overflow: auto; width: min(950px, 94vw); margin: 0; }
+  .row-bad { background: #fff4f4; }
+  .row-skip { opacity: .45; }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .toolbar .muted { flex-basis: 100%; }
 </style>
 </head>
 <body>
@@ -107,6 +113,16 @@
 
   <div class="card">
     <h2>3. Year overview</h2>
+    <div class="toolbar">
+      <label class="secondary" style="cursor:pointer;margin:0">&#128229; Import Excel/CSV
+        <input type="file" accept=".xlsx,.csv" style="display:none" onchange="startImport(event,'dl')"></label>
+      <button class="secondary" onclick="downloadTemplate('dl')">&#11123; Import template</button>
+      <button class="secondary" onclick="savePlan()">&#128190; Save plan</button>
+      <label class="secondary" style="cursor:pointer;margin:0">&#128194; Load plan
+        <input type="file" accept=".json" style="display:none" onchange="loadPlan(event)"></label>
+      <button class="danger" onclick="clearAll('dl')">Clear all</button>
+      <span class="muted">Import columns: activityName, eventType, activityDate, responsible (optional), role &mdash; only rows matching your selected function are imported. Your plan is saved automatically in this browser.</span>
+    </div>
     <p class="muted" id="emptyMsg">No activities yet. Add your activities above, then export everything at once.</p>
     <table id="overviewTable" class="hidden">
       <thead>
@@ -139,6 +155,7 @@
         <div style="max-width:240px"><label>Post name</label><input id="commPostName" placeholder="e.g. Announcement post"></div>
         <div style="max-width:200px"><label>Channel</label><input id="commPostChannel" list="channelList" placeholder="e.g. Instagram post"></div>
         <div style="max-width:130px"><label>Days before event</label><input type="number" id="commPostDays" value="14"></div>
+        <div style="max-width:110px"><label>Time</label><input type="time" id="commPostTime" value="18:00"></div>
         <div style="max-width:120px"><button class="secondary" onclick="addCustomPost()">+ Add</button></div>
       </div>
       <p class="muted" style="margin:4px 0 0">Use a negative number of days for posts <i>after</i> the event (e.g. aftermovie).</p>
@@ -149,6 +166,16 @@
 
   <div class="card">
     <h2>2. Post plan overview</h2>
+    <div class="toolbar">
+      <label class="secondary" style="cursor:pointer;margin:0">&#128229; Import Excel/CSV
+        <input type="file" accept=".xlsx,.csv" style="display:none" onchange="startImport(event,'comm')"></label>
+      <button class="secondary" onclick="downloadTemplate('comm')">&#11123; Import template</button>
+      <button class="secondary" onclick="savePlan()">&#128190; Save plan</button>
+      <label class="secondary" style="cursor:pointer;margin:0">&#128194; Load plan
+        <input type="file" accept=".json" style="display:none" onchange="loadPlan(event)"></label>
+      <button class="danger" onclick="clearAll('comm')">Clear all</button>
+      <span class="muted">Import columns: activityName, eventType, activityDate, responsible (optional). Posts on the same day &amp; time are automatically shifted one hour apart. Your plan is saved automatically in this browser.</span>
+    </div>
     <p class="muted" id="commEmptyMsg">No activities yet.</p>
     <table id="commTable" class="hidden">
       <thead><tr><th>Activity / post</th><th>Responsible</th><th>Date</th><th>Status</th><th></th></tr></thead>
@@ -156,7 +183,7 @@
     </table>
     <div class="export-bar" style="margin-top:16px">
       <button class="primary" onclick="exportExcel(commActivities,'Industria_communication_plan')">&#11123; Export Excel (.xlsx)</button>
-      <button class="secondary" onclick="exportICS(commActivities,'Industria_communication_plan')">&#128197; Export calendar (.ics)</button>
+      <button class="secondary" onclick="exportICS(commActivities,'Industria_communication_plan',true)">&#128197; Export calendar (.ics)</button>
     </div>
   </div>
 </div>
@@ -211,6 +238,22 @@
   </div><!-- /adminContent -->
 </div>
 
+<!-- import preview modal -->
+<div id="importOverlay" class="overlay hidden">
+  <div class="card">
+    <h2>Import preview</h2>
+    <p class="muted" id="importSummary"></p>
+    <table>
+      <thead><tr><th>Activity</th><th>Event type</th><th>Date</th><th>Responsible</th><th id="importRoleHead">Role</th><th>Status</th></tr></thead>
+      <tbody id="importBody"></tbody>
+    </table>
+    <div class="export-bar" style="margin-top:16px">
+      <button class="primary" onclick="confirmImport()">Confirm import</button>
+      <button class="secondary" onclick="cancelImport()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </main>
 <footer>Industria &mdash; Faculteit Industri&euml;le Ingenieurswetenschappen KU Leuven Campus Groep T</footer>
 
@@ -238,13 +281,13 @@ const DEFAULT_CONFIG = {
   eventTypes: [
     { id:"bsa", name:"BSA",
       deadlines:[{type:"communication",weeks:4},{type:"netteDriver",weeks:1},{type:"publicDomain",weeks:4},{type:"food",weeks:3},{type:"material",weeks:4},{type:"materialOrder",weeks:3},{type:"van",weeks:2},{type:"room",weeks:4},{type:"shiftingList",weeks:3}],
-      commPlan:[{name:"Facebook event online",channel:"Facebook event",daysBefore:21},{name:"Announcement post",channel:"Instagram post",daysBefore:21},{name:"Reminder post",channel:"Instagram post",daysBefore:7},{name:"Day-of story",channel:"Instagram story",daysBefore:0}] },
+      commPlan:[{name:"Facebook event online",channel:"Facebook event",daysBefore:21,time:"18:00"},{name:"Announcement post",channel:"Instagram post",daysBefore:21,time:"18:00"},{name:"Reminder post",channel:"Instagram post",daysBefore:7,time:"18:00"},{name:"Day-of story",channel:"Instagram story",daysBefore:0,time:"12:00"}] },
     { id:"fakparty", name:"Fakparty",
       deadlines:[{type:"communication",weeks:4},{type:"fakpartyPromo",weeks:3},{type:"headtapper",weeks:4},{type:"materialOrder",weeks:3},{type:"shiftingList",weeks:3}],
-      commPlan:[{name:"Announcement post",channel:"Instagram post",daysBefore:28},{name:"Poster / line-up post",channel:"Instagram post",daysBefore:14},{name:"Reminder story",channel:"Instagram story",daysBefore:1},{name:"Aftermovie / recap",channel:"Instagram post",daysBefore:-3}] },
+      commPlan:[{name:"Announcement post",channel:"Instagram post",daysBefore:28,time:"18:00"},{name:"Poster / line-up post",channel:"Instagram post",daysBefore:14,time:"18:00"},{name:"Reminder story",channel:"Instagram story",daysBefore:1,time:"12:00"},{name:"Aftermovie / recap",channel:"Instagram post",daysBefore:-3,time:"18:00"}] },
     { id:"cantus", name:"Cantus",
       deadlines:[{type:"communication",weeks:4},{type:"material",weeks:4},{type:"enrollmentForms",weeks:4},{type:"materialOrder",weeks:3},{type:"shiftingList",weeks:3}],
-      commPlan:[{name:"Announcement post",channel:"Instagram post",daysBefore:21},{name:"Registration reminder",channel:"Instagram story",daysBefore:10},{name:"Day-of story",channel:"Instagram story",daysBefore:0}] }
+      commPlan:[{name:"Announcement post",channel:"Instagram post",daysBefore:21,time:"18:00"},{name:"Registration reminder",channel:"Instagram story",daysBefore:10,time:"18:00"},{name:"Day-of story",channel:"Instagram story",daysBefore:0,time:"12:00"}] }
   ]
 };
 
@@ -256,6 +299,7 @@ let customPosts = [];     // for "Other" form (communication planner)
 let nextId = 1;
 
 /* ---------- init ---------- */
+loadState();
 fetch('config.json').then(r => r.ok ? r.json() : null).then(c => { if (c) config = c; renderAll(); }).catch(() => renderAll());
 
 function renderAll(){
@@ -384,13 +428,7 @@ function addActivity(){
     });
   }
 
-  const deadlines = dls.map(d => {
-    const dd = new Date(eventDate); dd.setDate(dd.getDate() - d.weeks*7);
-    return { name:d.name, weeks:d.weeks, date:dd, status:'To Do', resp:resp };
-  }).sort((a,b) => a.date - b.date);
-
-  activities.push({ id:nextId++, name, resp, typeName, date:eventDate, deadlines });
-  activities.sort((a,b) => a.date - b.date);
+  pushDlActivity(name, resp, typeName, eventDate, dls);
 
   document.getElementById('actName').value = '';
   document.getElementById('actDate').value = '';
@@ -400,9 +438,18 @@ function addActivity(){
   renderOverview();
 }
 
+function pushDlActivity(name, resp, typeName, eventDate, dls){
+  const deadlines = dls.map(d => {
+    const dd = new Date(eventDate); dd.setDate(dd.getDate() - d.weeks*7);
+    return { name:d.name, weeks:d.weeks, date:dd, status:'To Do', resp:resp };
+  }).sort((a,b) => a.date - b.date);
+  activities.push({ id:nextId++, name, resp, typeName, date:eventDate, deadlines });
+  activities.sort((a,b) => a.date - b.date);
+}
+
 function removeActivity(id){ activities = activities.filter(a => a.id !== id); renderOverview(); }
 function setStatus(aid, i, val){ const a = activities.find(x => x.id === aid); a.deadlines[i].status = val; renderOverview(); }
-function setDlResp(aid, i, val){ const a = activities.find(x => x.id === aid); a.deadlines[i].resp = val; }
+function setDlResp(aid, i, val){ const a = activities.find(x => x.id === aid); a.deadlines[i].resp = val; saveState(); }
 
 function fmt(d){ return d.toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }); }
 function warnings(d){
@@ -432,6 +479,7 @@ function renderOverview(){
       </select></td><td></td></tr>`).join('');
     return html;
   }).join('');
+  saveState();
 }
 
 /* ---------- communication planner ---------- */
@@ -447,12 +495,27 @@ function addCustomPost(){
   const n = document.getElementById('commPostName').value.trim();
   const ch = document.getElementById('commPostChannel').value.trim() || 'Instagram post';
   const d = parseInt(document.getElementById('commPostDays').value) || 0;
+  const t = document.getElementById('commPostTime').value || '18:00';
   if (!n) return alert('Give the post a name.');
-  customPosts.push({ name:n, channel:ch, daysBefore:d });
+  customPosts.push({ name:n, channel:ch, daysBefore:d, time:t });
   document.getElementById('commPostName').value = '';
-  document.getElementById('commPostList').innerHTML = customPosts.map(p => `<span class="tag">${esc(p.name)} — ${esc(p.channel)} (${offsetLabel(p.daysBefore)})</span>`).join('');
+  document.getElementById('commPostList').innerHTML = customPosts.map(p => `<span class="tag">${esc(p.name)} — ${esc(p.channel)} (${offsetLabel(p.daysBefore)}, ${p.time})</span>`).join('');
 }
 function offsetLabel(d){ return d > 0 ? `${d} d before` : d < 0 ? `${-d} d after` : 'day of event'; }
+const pad2 = n => String(n).padStart(2,'0');
+/* If two posts (across all activities) land on the same day at the same time,
+   shift the new one +1h until the slot is free, and mark it. */
+function assignCommTimes(deadlines){
+  const occupied = new Set();
+  commActivities.forEach(a => a.deadlines.forEach(d => occupied.add(d.date.toDateString()+' '+d.time)));
+  deadlines.forEach(d => {
+    let [h,m] = (d.time || '18:00').split(':').map(Number);
+    d.shifted = false;
+    while (occupied.has(d.date.toDateString()+' '+pad2(h)+':'+pad2(m)) && h < 23){ h++; d.shifted = true; }
+    d.time = pad2(h)+':'+pad2(m);
+    occupied.add(d.date.toDateString()+' '+d.time);
+  });
+}
 
 function addCommActivity(){
   const name = document.getElementById('commName').value.trim();
@@ -474,13 +537,7 @@ function addCommActivity(){
     if (!plan.length) return alert(`No communication plan defined for ${et.name} yet — add one via the Admin tab.`);
   }
 
-  const deadlines = plan.map(p => {
-    const dd = new Date(eventDate); dd.setDate(dd.getDate() - p.daysBefore);
-    return { name:`${p.name} — ${p.channel}`, offset:p.daysBefore, date:dd, status:'To Do', resp:resp };
-  }).sort((a,b) => a.date - b.date);
-
-  commActivities.push({ id:nextId++, name, resp, typeName, date:eventDate, deadlines });
-  commActivities.sort((a,b) => a.date - b.date);
+  pushCommActivity(name, resp, typeName, eventDate, plan);
 
   document.getElementById('commName').value = '';
   document.getElementById('commDate').value = '';
@@ -489,9 +546,20 @@ function addCommActivity(){
   renderCommOverview();
 }
 
+function pushCommActivity(name, resp, typeName, eventDate, plan){
+  const deadlines = plan.map(p => {
+    const dd = new Date(eventDate); dd.setDate(dd.getDate() - p.daysBefore);
+    return { name:`${p.name} — ${p.channel}`, offset:p.daysBefore, date:dd, time:p.time||'18:00', status:'To Do', resp:resp };
+  }).sort((a,b) => a.date - b.date);
+  assignCommTimes(deadlines);
+  commActivities.push({ id:nextId++, name, resp, typeName, date:eventDate, deadlines });
+  commActivities.sort((a,b) => a.date - b.date);
+}
+
 function removeCommActivity(id){ commActivities = commActivities.filter(a => a.id !== id); renderCommOverview(); }
+function setCommTime(aid, i, val){ const a = commActivities.find(x => x.id === aid); a.deadlines[i].time = val || '18:00'; a.deadlines[i].shifted = false; saveState(); }
 function setCommStatus(aid, i, val){ const a = commActivities.find(x => x.id === aid); a.deadlines[i].status = val; renderCommOverview(); }
-function setCommResp(aid, i, val){ const a = commActivities.find(x => x.id === aid); a.deadlines[i].resp = val; }
+function setCommResp(aid, i, val){ const a = commActivities.find(x => x.id === aid); a.deadlines[i].resp = val; saveState(); }
 
 function renderCommOverview(){
   const tbl = document.getElementById('commTable'), body = document.getElementById('commBody');
@@ -505,14 +573,204 @@ function renderCommOverview(){
       <td></td>
       <td><button class="danger" onclick="removeCommActivity(${a.id})">remove</button></td></tr>`;
     html += a.deadlines.map((d,i) => `<tr>
-      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${offsetLabel(d.offset)})</span>${warnings(d.date)}</td>
+      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${offsetLabel(d.offset)})</span>${warnings(d.date)}${d.shifted?' <span class="warn">&#9202; shifted +1h (slot taken)</span>':''}</td>
       <td><input value="${esc(d.resp)}" style="max-width:150px;padding:4px 8px" onchange="setCommResp(${a.id},${i},this.value)"></td>
-      <td>${fmt(d.date)}</td>
+      <td style="white-space:nowrap">${fmt(d.date)} <input type="time" value="${d.time||'18:00'}" style="width:auto;padding:3px 6px" onchange="setCommTime(${a.id},${i},this.value)"></td>
       <td><select class="status-select status-${d.status.replace(' ','')}" onchange="setCommStatus(${a.id},${i},this.value)">
         ${['To Do','Busy','Done'].map(s => `<option ${s===d.status?'selected':''}>${s}</option>`).join('')}
       </select></td><td></td></tr>`).join('');
     return html;
   }).join('');
+  saveState();
+}
+
+/* ---------- import (Excel/CSV) ---------- */
+let pendingImport = null; // { mode:'dl'|'comm', rows:[...] }
+const normHead = s => String(s||'').toLowerCase().replace(/[^a-z]/g,'');
+const HEAD_MAP = { activityname:'name', activity:'name', name:'name', naam:'name',
+  eventtype:'type', type:'type', activiteittype:'type',
+  activitydate:'date', date:'date', datum:'date', activiteitdatum:'date',
+  responsible:'resp', verantwoordelijke:'resp',
+  role:'role', function:'role', functie:'role' };
+
+function parseDateCell(v){
+  if (v instanceof Date && !isNaN(v)) return new Date(v.getFullYear(), v.getMonth(), v.getDate(), 12);
+  if (typeof v === 'number'){ // Excel serial
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12);
+  }
+  const s = String(v||'').trim();
+  let m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);   // dd/mm/yyyy
+  if (m) return new Date(+m[3], +m[2]-1, +m[1], 12);
+  m = s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);         // yyyy-mm-dd
+  if (m) return new Date(+m[1], +m[2]-1, +m[3], 12);
+  return null;
+}
+function matchEventType(v){
+  const s = String(v||'').trim().toLowerCase();
+  return config.eventTypes.find(e => e.name.toLowerCase() === s || e.id.toLowerCase() === s) || null;
+}
+
+async function startImport(ev, mode){
+  const file = ev.target.files[0]; ev.target.value = ''; if (!file) return;
+  let rows = [];
+  try {
+    if (file.name.toLowerCase().endsWith('.csv')){
+      const text = await file.text();
+      rows = text.split(/\r?\n/).filter(l => l.trim()).map(l => splitCsvLine(l));
+    } else {
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(await file.arrayBuffer());
+      const ws = wb.worksheets[0];
+      ws.eachRow(r => rows.push(r.values.slice(1).map(c => (c && c.result !== undefined) ? c.result : c)));
+    }
+  } catch(e){ return alert('Could not read file: ' + e.message); }
+  if (rows.length < 2) return alert('File appears to be empty (need a header row + data rows).');
+
+  const cols = rows[0].map(h => HEAD_MAP[normHead(h)] || null);
+  if (!cols.includes('name') || !cols.includes('type') || !cols.includes('date'))
+    return alert('Missing required columns. Expected headers: activityName, eventType, activityDate (+ optional responsible' + (mode==='dl' ? ', role' : '') + ').');
+
+  const myRole = document.getElementById('roleSelect').value;
+  const parsed = rows.slice(1).map((r,ri) => {
+    const o = { line: ri+2 };
+    cols.forEach((c,ci) => { if (c) o[c] = r[ci]; });
+    const et = matchEventType(o.type);
+    const date = parseDateCell(o.date);
+    let status = 'ok';
+    if (mode === 'dl' && o.role && String(o.role).trim().toLowerCase() !== myRole.toLowerCase()) status = 'otherrole';
+    else if (!o.name || !String(o.name).trim()) status = 'noname';
+    else if (!et) status = 'badtype';
+    else if (!date) status = 'baddate';
+    return { name: String(o.name||'').trim(), typeId: et ? et.id : '', rawType: String(o.type||''),
+             date, rawDate: String(o.date||''), resp: String(o.resp||'').trim(), role: String(o.role||'').trim(), status };
+  }).filter(r => r.name || r.rawType || r.rawDate);
+
+  pendingImport = { mode, rows: parsed };
+  renderImportPreview();
+}
+function splitCsvLine(line){
+  const out = []; let cur = '', inQ = false;
+  const sep = line.includes(';') && !line.includes(',') ? ';' : ',';
+  for (const ch of line){
+    if (ch === '"') inQ = !inQ;
+    else if (ch === sep && !inQ){ out.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+
+function renderImportPreview(){
+  const { mode, rows } = pendingImport;
+  document.getElementById('importRoleHead').style.display = mode==='dl' ? '' : 'none';
+  const ok = rows.filter(r => r.status==='ok').length;
+  const skip = rows.filter(r => r.status==='otherrole').length;
+  const bad = rows.length - ok - skip;
+  document.getElementById('importSummary').innerHTML =
+    `<b>${ok}</b> row(s) ready to import` +
+    (bad ? `, <span class="warn">${bad} need fixing below</span>` : '') +
+    (skip ? `, ${skip} skipped (other role)` : '') + '.';
+  const typeOpts = sel => config.eventTypes.map(e => `<option value="${e.id}" ${e.id===sel?'selected':''}>${esc(e.name)}</option>`).join('');
+  document.getElementById('importBody').innerHTML = rows.map((r,i) => {
+    const cls = r.status==='otherrole' ? 'row-skip' : (r.status!=='ok' ? 'row-bad' : '');
+    const typeCell = r.status==='badtype'
+      ? `<select onchange="fixImportType(${i},this.value)"><option value="">— ${esc(r.rawType)||'?'} —</option>${typeOpts('')}</select>`
+      : esc(config.eventTypes.find(e=>e.id===r.typeId)?.name || r.rawType);
+    const dateCell = r.status==='baddate'
+      ? `<input type="date" onchange="fixImportDate(${i},this.value)">`
+      : (r.date ? fmt(r.date) : esc(r.rawDate));
+    const statusTxt = { ok:'✓ ready', otherrole:'skipped (other role)', badtype:'unknown event type', baddate:'invalid date', noname:'missing name' }[r.status];
+    return `<tr class="${cls}"><td>${esc(r.name)||'<i>?</i>'}</td><td>${typeCell}</td><td>${dateCell}</td><td>${esc(r.resp)}</td>
+      <td style="display:${mode==='dl'?'':'none'}">${esc(r.role)}</td><td class="${r.status==='ok'?'':'warn'}">${statusTxt}</td></tr>`;
+  }).join('');
+  document.getElementById('importOverlay').classList.remove('hidden');
+}
+function fixImportType(i, typeId){ const r = pendingImport.rows[i]; if (typeId){ r.typeId = typeId; if (r.date) r.status = 'ok'; else r.status = 'baddate'; } renderImportPreview(); }
+function fixImportDate(i, val){ const r = pendingImport.rows[i]; if (val){ r.date = new Date(val + 'T12:00:00'); if (r.typeId) r.status = 'ok'; } renderImportPreview(); }
+function cancelImport(){ pendingImport = null; document.getElementById('importOverlay').classList.add('hidden'); }
+
+function confirmImport(){
+  const { mode, rows } = pendingImport;
+  let n = 0;
+  rows.filter(r => r.status === 'ok').forEach(r => {
+    const et = config.eventTypes.find(e => e.id === r.typeId);
+    if (!et) return;
+    if (mode === 'dl'){
+      const dls = et.deadlines.map(d => {
+        const dt = config.deadlineTypes.find(t => t.id === d.type);
+        return { name: dt ? dt.name : d.type, weeks: d.weeks };
+      });
+      pushDlActivity(r.name, r.resp, et.name, r.date, dls);
+    } else {
+      pushCommActivity(r.name, r.resp, et.name, r.date, (et.commPlan||[]));
+    }
+    n++;
+  });
+  cancelImport();
+  renderOverview(); renderCommOverview();
+  alert(`${n} activities imported.`);
+}
+
+/* ---------- import templates ---------- */
+async function downloadTemplate(mode){
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Activities');
+  const heads = mode==='dl'
+    ? ['activityName','eventType','activityDate','responsible','role']
+    : ['activityName','eventType','activityDate','responsible'];
+  ws.addRow(heads).font = { bold:true };
+  const example = mode==='dl'
+    ? ['Opening BSA', config.eventTypes[0]?.name || 'BSA', '01/10/2026', 'Marti', config.roles[8] || 'Ontspanning']
+    : ['Opening BSA', config.eventTypes[0]?.name || 'BSA', '01/10/2026', 'Luca'];
+  ws.addRow(example);
+  ws.columns = heads.map(() => ({ width: 22 }));
+  const buf = await wb.xlsx.writeBuffer();
+  download(new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    mode==='dl' ? 'Industria_deadline_import_template.xlsx' : 'Industria_communication_import_template.xlsx');
+}
+
+/* ---------- persistence ---------- */
+const STORE_KEY = 'industriaPlannerState';
+function saveState(){
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({ v:1, nextId, activities, commActivities }));
+  } catch {}
+}
+function reviveList(list){
+  return (list||[]).map(a => ({ ...a, date:new Date(a.date), deadlines:(a.deadlines||[]).map(d => ({ ...d, date:new Date(d.date) })) }));
+}
+function loadState(){
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (!s) return;
+    activities = reviveList(s.activities);
+    commActivities = reviveList(s.commActivities);
+    nextId = s.nextId || 1;
+  } catch {}
+}
+function savePlan(){
+  download(new Blob([JSON.stringify({ v:1, nextId, activities, commActivities }, null, 2)], { type:'application/json' }),
+    `Industria_plan_${new Date().toISOString().slice(0,10)}.json`);
+}
+function loadPlan(ev){
+  const f = ev.target.files[0]; ev.target.value = ''; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const s = JSON.parse(r.result);
+      activities = reviveList(s.activities);
+      commActivities = reviveList(s.commActivities);
+      nextId = s.nextId || 1;
+      renderOverview(); renderCommOverview();
+    } catch { alert('Invalid plan file.'); }
+  };
+  r.readAsText(f);
+}
+function clearAll(mode){
+  if (!confirm('Remove all activities in this tab?')) return;
+  if (mode === 'dl') activities = []; else commActivities = [];
+  renderOverview(); renderCommOverview();
 }
 
 /* ---------- Excel export ---------- */
@@ -531,7 +789,7 @@ async function exportExcel(list = activities, fname = 'Industria_deadlines'){
     hr.font = { bold:true };
     hr.eachCell(c => { c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFEEF4F1'} }; c.border = { top:{style:'medium',color:{argb:'FF2E6B52'}} }; });
     a.deadlines.forEach(d => {
-      const r = ws.addRow([d.name, d.resp, fmt(d.date), d.status]);
+      const r = ws.addRow([d.name, d.resp, fmt(d.date) + (d.time ? ' ' + d.time : ''), d.status]);
       r.eachCell(c => c.border = border);
       const sc = r.getCell(4);
       sc.fill = { type:'pattern', pattern:'solid', fgColor:{argb:STATUS_FILL[d.status]} };
@@ -554,14 +812,25 @@ async function exportExcel(list = activities, fname = 'Industria_deadlines'){
 }
 
 /* ---------- ICS export ---------- */
-function exportICS(list = activities, fname = 'Industria_deadlines'){
+function exportICS(list = activities, fname = 'Industria_deadlines', timed = false){
   if (!list.length) return alert('Add at least one activity first.');
   const p = d => d.toISOString().slice(0,10).replace(/-/g,'');
+  const pl = d => `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}T${pad2(d.getHours())}${pad2(d.getMinutes())}00`;
   let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Industria//DeadlinePlanner//EN\r\n';
   list.forEach(a => {
     a.deadlines.forEach((d,i) => {
-      const end = new Date(d.date); end.setDate(end.getDate()+1);
-      ics += `BEGIN:VEVENT\r\nUID:${a.id}-${i}@industria.be\r\nDTSTAMP:${p(new Date())}T000000Z\r\nDTSTART;VALUE=DATE:${p(d.date)}\r\nDTEND;VALUE=DATE:${p(end)}\r\nSUMMARY:[${icsEsc(a.name)}] ${icsEsc(d.name)}\r\nDESCRIPTION:Deadline for ${icsEsc(a.name)} (${icsEsc(a.typeName)}) on ${fmt(a.date)}. Responsible: ${icsEsc(d.resp||a.resp)}\r\nEND:VEVENT\r\n`;
+      let dt;
+      if (timed && d.time){
+        // 30-minute block (e.g. 18:00-18:30) so it is clearly visible in Google Calendar
+        const [h,m] = d.time.split(':').map(Number);
+        const start = new Date(d.date); start.setHours(h, m, 0, 0);
+        const end = new Date(start.getTime() + 30*60*1000);
+        dt = `DTSTART:${pl(start)}\r\nDTEND:${pl(end)}`;
+      } else {
+        const end = new Date(d.date); end.setDate(end.getDate()+1);
+        dt = `DTSTART;VALUE=DATE:${p(d.date)}\r\nDTEND;VALUE=DATE:${p(end)}`;
+      }
+      ics += `BEGIN:VEVENT\r\nUID:${a.id}-${i}@industria.be\r\nDTSTAMP:${p(new Date())}T000000Z\r\n${dt}\r\nSUMMARY:[${icsEsc(a.name)}] ${icsEsc(d.name)}\r\nDESCRIPTION:${timed?'Post':'Deadline'} for ${icsEsc(a.name)} (${icsEsc(a.typeName)}) on ${fmt(a.date)}. Responsible: ${icsEsc(d.resp||a.resp)}\r\nEND:VEVENT\r\n`;
     });
   });
   ics += 'END:VCALENDAR\r\n';
@@ -603,6 +872,7 @@ function renderAdmin(){
             <input type="text" list="channelList" value="${esc(p.channel)}" style="flex:1" onchange="adminCommSet(${i},${pi},'channel',this.value)">
             <input type="number" value="${p.daysBefore}" onchange="adminCommSet(${i},${pi},'daysBefore',parseInt(this.value)||0)">
             <span class="muted">days</span>
+            <input type="time" value="${p.time||'18:00'}" style="width:auto" onchange="adminCommSet(${i},${pi},'time',this.value)">
             <button class="danger" onclick="adminCommRemove(${i},${pi})">remove</button>
           </div>`).join('')}
         </div>
@@ -615,7 +885,7 @@ function adminCommRemove(ei, pi){ config.eventTypes[ei].commPlan.splice(pi,1); r
 function adminCommAdd(ei){
   const e = config.eventTypes[ei];
   if (!e.commPlan) e.commPlan = [];
-  e.commPlan.push({ name:'New post', channel:(config.commChannels||['Instagram post'])[0], daysBefore:14 });
+  e.commPlan.push({ name:'New post', channel:(config.commChannels||['Instagram post'])[0], daysBefore:14, time:'18:00' });
   renderAdmin();
 }
 function adminToggle(ei, tid, on){

@@ -6,14 +6,32 @@ A static single-page web app for [Industria](https://industria.be) (student asso
 
 ## How it works
 
+### Deadline planner
+
 1. **Select your function** (Ontspanning, Sport, Cultuur, ...).
-2. **Add your activities** for the year: name, main responsible, event type (BSA, Cantus, Fakfeest, or *Other* with custom deadline selection) and date.
+2. **Add your activities** for the year: name, main responsible, event type (BSA, Fakparty, Cantus, or *Other* with custom deadline selection) and date.
 3. All internal deadlines are **calculated automatically** (exactly X weeks before the event, with a warning when a deadline falls in a weekend or in the past).
 4. **Export everything at once**:
    - **Excel (.xlsx)** — grouped per activity, with a Status column (To Do / Busy / Done) that has a dropdown and colour coding that keeps working inside Excel.
    - **Calendar (.ics)** — import all deadlines into Google/Outlook Calendar.
 
-Nothing is stored on a server; you build your year plan in the browser and export it.
+### Communication planner
+
+Separate tab for the communication team. Every event type has a standard **post plan** (announcement, reminder, day-of story, aftermovie, ...) with an offset in days and a **default posting time** (e.g. 18:00). Add activities (or import them, see below) and the full posting schedule is generated. If two posts land on the same day at the same time, the later one is automatically shifted one hour and flagged, so posts never overlap. Times remain editable per post. The .ics export creates **30-minute calendar blocks** (e.g. 18:00–18:30) so posts are clearly visible in Google Calendar.
+
+### Bulk import (Excel/CSV)
+
+Both planners have an **Import Excel/CSV** button so you don't have to type the whole year plan by hand:
+
+- Columns: `activityName`, `eventType`, `activityDate` (+ optional `responsible`; the deadline planner also accepts `role`).
+- With a `role` column, only rows matching your selected function are imported — so the praesidium can maintain one central year-plan file.
+- An **import preview** shows what was recognised; unknown event types or invalid dates can be fixed inline before confirming.
+- Use the **Import template** button to get a ready-made file with the right headers.
+- Dates work as real Excel dates, `dd/mm/yyyy` or `yyyy-mm-dd`; CSV with `,` or `;` separators.
+
+### Saving your work
+
+The plan is **saved automatically in your browser** (localStorage) and survives a refresh. Use **Save plan** / **Load plan** to download it as a JSON file, share it, or continue on another computer. Nothing is stored on a server.
 
 ## Admin mode
 

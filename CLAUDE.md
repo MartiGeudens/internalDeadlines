@@ -29,7 +29,17 @@ Statische single-page app voor **GitHub Pages** (geen backend). Flow:
 Gegroepeerd per activiteit. Headerrij per activiteit (bold, groene bovenrand): `Activiteitnaam | Hoofdverantwoordelijke | Datum activiteit | "Status"`. Daaronder per deadline: `Deadlinenaam | Verantwoordelijke | Datum deadline | Status`. Status heeft dropdown (To Do/Busy/Done) + kleuren: Done=groen (C6EFCE), Busy=geel (FFEB9C), To Do=rood (FFC7CE), plus conditional formatting zodat kleuren mee veranderen in Excel zelf.
 
 ## Communication planner (aparte tab)
-Voor team Communicatie: per event-type een standaard **commPlan** in config (posts met naam, channel, `daysBefore`; negatief = ná het event, bv. aftermovie). Zelfde flow als deadline planner: activiteiten toevoegen → postplan gegenereerd → zelfde Excel/ICS-export (functies zijn geparametriseerd: `exportExcel(list, fname)`). "Other" = zelf posts samenstellen. Channels als datalist uit `config.commChannels`. Beheer van commPlans zit in de admin-tab per event-type. Niet apart password-protected (admin wel). **Default commPlans zijn gokken van Claude, valideren met team Communicatie.**
+Voor team Communicatie: per event-type een standaard **commPlan** in config (posts met naam, channel, `daysBefore` — negatief = ná het event — en `time`, standaarduur zoals "18:00"). Zelfde flow als deadline planner: activiteiten toevoegen → postplan gegenereerd → zelfde Excel/ICS-export (functies zijn geparametriseerd: `exportExcel(list, fname)`, `exportICS(list, fname, timed)`). "Other" = zelf posts samenstellen. Channels als datalist uit `config.commChannels`. Beheer van commPlans (incl. tijden) in de admin-tab per event-type. **Default commPlans zijn gokken van Claude, valideren met team Communicatie.**
+- **Tijdbotsing**: posts op zelfde dag+uur (over alle activiteiten) schuiven automatisch +1u op (`assignCommTimes`), met ⏲-markering in UI. Uur per post editeerbaar.
+- **ICS voor comm is timed**: 30-minutenblok (18:00–18:30) i.p.v. all-day, zodat zichtbaar in Google Calendar. Deadline planner blijft all-day.
+
+## Bulk import & persistentie (toegevoegd juli 2026)
+- **Import Excel/CSV** in beide tabs (`startImport(ev, mode)` met mode 'dl'|'comm'). Headers via `HEAD_MAP` (EN+NL aliassen): activityName, eventType, activityDate, responsible, role (alleen dl). Role-kolom filtert op geselecteerde functie ('otherrole' = skipped). Datums: Excel-date-cellen, serials, dd/mm/yyyy, yyyy-mm-dd. CSV met , of ;.
+- **Preview-modal** (#importOverlay): fixes inline (dropdown voor onbekend type, date-input voor foute datum) vóór confirm. Template-download per tab (`downloadTemplate`).
+- **Persistentie**: autosave naar localStorage (`industriaPlannerState`) bij elke render/mutatie; `savePlan()`/`loadPlan()` = JSON-bestand delen. Dates worden gerevived met `reviveList`. "Clear all" per tab.
+
+## Bekende omgevingsquirk (Cowork-sessies)
+De sandbox-mount van deze projectmap synct traag/onvolledig; node-checks op `/sessions/.../mnt/internalDeadlines/` kunnen stale content zien. Verificatie: functies kopiëren naar /tmp en daar testen, of host-side Grep/Read gebruiken.
 
 ## Deadline-types (defaults zijn voorlopige schattingen!)
 Communication request (4w), Material request (4w), Material order/new purchase (6w), Drink request (2w), Food request (2w), Industria van request (3w), Province request (8w), Public domain occupation (8w), Room request (6w).

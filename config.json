@@ -50,10 +50,10 @@
         { "type": "shiftingList", "weeks": 3 }
       ],
       "commPlan": [
-        { "name": "Facebook event online", "channel": "Facebook event", "daysBefore": 21 },
-        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 21 },
-        { "name": "Reminder post", "channel": "Instagram post", "daysBefore": 7 },
-        { "name": "Day-of story", "channel": "Instagram story", "daysBefore": 0 }
+        { "name": "Facebook event online", "channel": "Facebook event", "daysBefore": 21, "time": "18:00" },
+        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 21, "time": "18:00" },
+        { "name": "Reminder post", "channel": "Instagram post", "daysBefore": 7, "time": "18:00" },
+        { "name": "Day-of story", "channel": "Instagram story", "daysBefore": 0, "time": "12:00" }
       ]
     },
     {
@@ -67,10 +67,10 @@
         { "type": "shiftingList", "weeks": 3 }
       ],
       "commPlan": [
-        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 28 },
-        { "name": "Poster / line-up post", "channel": "Instagram post", "daysBefore": 14 },
-        { "name": "Reminder story", "channel": "Instagram story", "daysBefore": 1 },
-        { "name": "Aftermovie / recap", "channel": "Instagram post", "daysBefore": -3 }
+        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 28, "time": "18:00" },
+        { "name": "Poster / line-up post", "channel": "Instagram post", "daysBefore": 14, "time": "18:00" },
+        { "name": "Reminder story", "channel": "Instagram story", "daysBefore": 1, "time": "12:00" },
+        { "name": "Aftermovie / recap", "channel": "Instagram post", "daysBefore": -3, "time": "18:00" }
       ]
     },
     {
@@ -84,9 +84,9 @@
         { "type": "shiftingList", "weeks": 3 }
       ],
       "commPlan": [
-        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 21 },
-        { "name": "Registration reminder", "channel": "Instagram story", "daysBefore": 10 },
-        { "name": "Day-of story", "channel": "Instagram story", "daysBefore": 0 }
+        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 21, "time": "18:00" },
+        { "name": "Registration reminder", "channel": "Instagram story", "daysBefore": 10, "time": "18:00" },
+        { "name": "Day-of story", "channel": "Instagram story", "daysBefore": 0, "time": "12:00" }
       ]
     }
   ]
