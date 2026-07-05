@@ -20,24 +20,57 @@
   "deadlineTypes": [
     { "id": "communication", "name": "Communication request", "defaultWeeks": 4 },
     { "id": "material", "name": "Material request", "defaultWeeks": 4 },
-    { "id": "materialOrder", "name": "Material order request (new purchase)", "defaultWeeks": 6 },
-    { "id": "drinks", "name": "Drink request", "defaultWeeks": 2 },
-    { "id": "food", "name": "Food request", "defaultWeeks": 2 },
-    { "id": "van", "name": "Industria van request", "defaultWeeks": 3 },
-    { "id": "province", "name": "Province request", "defaultWeeks": 8 },
-    { "id": "publicDomain", "name": "Public domain occupation request", "defaultWeeks": 8 },
-    { "id": "room", "name": "Room request", "defaultWeeks": 6 }
+    { "id": "materialOrder", "name": "Quaestor request (purchase of X)", "defaultWeeks": 3 },
+    { "id": "drinks", "name": "Drink request (order at Recup)", "defaultWeeks": 3 },
+    { "id": "food", "name": "Food request", "defaultWeeks": 3 },
+    { "id": "van", "name": "Nette request", "defaultWeeks": 2 },
+    { "id": "province", "name": "Provincie request", "defaultWeeks": 4 },
+    { "id": "publicDomain", "name": "IOD request", "defaultWeeks": 4 },
+    { "id": "room", "name": "Room KUL request", "defaultWeeks": 4 },
+    { "id": "fakpartyPromo", "name": "Arrange Fakparty promo with Quaestor", "defaultWeeks": 3 },
+    { "id": "netteDriver", "name": "Arrange Nette driver", "defaultWeeks": 1 },
+    { "id": "shiftingList", "name": "Create shiftinglist", "defaultWeeks": 3 },
+    { "id": "headtapper", "name": "Arrange headtapper", "defaultWeeks": 4 },
+    { "id": "enrollmentForms", "name": "Make Enrollment forms (to be submitted in communication request)", "defaultWeeks": 4 }
   ],
+  "commChannels": ["Instagram post", "Instagram story", "Facebook event", "Mailing", "Website"],
   "eventTypes": [
     {
       "id": "bsa",
       "name": "BSA",
       "deadlines": [
         { "type": "communication", "weeks": 4 },
+        { "type": "netteDriver", "weeks": 1 },
+        { "type": "publicDomain", "weeks": 4 },
+        { "type": "food", "weeks": 3 },
         { "type": "material", "weeks": 4 },
-        { "type": "drinks", "weeks": 2 },
-        { "type": "food", "weeks": 2 },
-        { "type": "room", "weeks": 6 }
+        { "type": "materialOrder", "weeks": 3 },
+        { "type": "van", "weeks": 2 },
+        { "type": "room", "weeks": 4 },
+        { "type": "shiftingList", "weeks": 3 }
+      ],
+      "commPlan": [
+        { "name": "Facebook event online", "channel": "Facebook event", "daysBefore": 21 },
+        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 21 },
+        { "name": "Reminder post", "channel": "Instagram post", "daysBefore": 7 },
+        { "name": "Day-of story", "channel": "Instagram story", "daysBefore": 0 }
+      ]
+    },
+    {
+      "id": "fakparty",
+      "name": "Fakparty",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "fakpartyPromo", "weeks": 3 },
+        { "type": "headtapper", "weeks": 4 },
+        { "type": "materialOrder", "weeks": 3 },
+        { "type": "shiftingList", "weeks": 3 }
+      ],
+      "commPlan": [
+        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 28 },
+        { "name": "Poster / line-up post", "channel": "Instagram post", "daysBefore": 14 },
+        { "name": "Reminder story", "channel": "Instagram story", "daysBefore": 1 },
+        { "name": "Aftermovie / recap", "channel": "Instagram post", "daysBefore": -3 }
       ]
     },
     {
@@ -45,19 +78,15 @@
       "name": "Cantus",
       "deadlines": [
         { "type": "communication", "weeks": 4 },
-        { "type": "drinks", "weeks": 3 },
         { "type": "material", "weeks": 4 },
-        { "type": "room", "weeks": 6 }
-      ]
-    },
-    {
-      "id": "fakfeest",
-      "name": "Fakfeest",
-      "deadlines": [
-        { "type": "communication", "weeks": 4 },
-        { "type": "drinks", "weeks": 3 },
-        { "type": "material", "weeks": 4 },
-        { "type": "publicDomain", "weeks": 8 }
+        { "type": "enrollmentForms", "weeks": 4 },
+        { "type": "materialOrder", "weeks": 3 },
+        { "type": "shiftingList", "weeks": 3 }
+      ],
+      "commPlan": [
+        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 21 },
+        { "name": "Registration reminder", "channel": "Instagram story", "daysBefore": 10 },
+        { "name": "Day-of story", "channel": "Instagram story", "daysBefore": 0 }
       ]
     }
   ]
