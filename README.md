@@ -15,9 +15,32 @@ A static single-page web app for [Industria](https://industria.be) (student asso
    - **Excel (.xlsx)** — grouped per activity, with a Status column (To Do / Busy / Done) that has a dropdown and colour coding that keeps working inside Excel.
    - **Calendar (.ics)** — import all deadlines into Google/Outlook Calendar.
 
+#### Step-by-step guide
+
+1. **Select your function** in step 1 (Ontspanning, Sport, Cultuur, ...).
+2. Skip step 2 for the moment, this is for manual import.
+   1. For manual import, skip to step 7.
+3. Upload the Excel made after the agenda meeting via the **Import Excel/CSV** button.
+4. Check if all the info is correct:
+   1. Are all your activities imported?
+   2. Are all the dates of your activities correct?
+   3. Is the event type correct for predefined event types (like BSA, Cantus, IFB, ...)?
+5. Add the (head)responsibles for each deadline of the activity (also possible to do later in Excel).
+6. Click on **Confirm import** — all deadlines should pop up on the website chronologically.
+7. If not all your activities were in the Excel, you can add them manually:
+   1. Add the name of the activity.
+   2. Add the main responsible of the event (also possible to do later in Excel).
+   3. Select the event type:
+      1. For predefined events in the config file the deadlines will be selected automatically.
+      2. For *Other* activities, you need to select all deadlines that need to be followed yourself.
+   4. Select the date of the event.
+   5. Click on **Add activity**.
+   6. Repeat for all events not in the activity Excel.
+8. Done! Click on **Export Excel** and enjoy a deadline planner for within your function.
+
 ### Communication planner
 
-Separate tab for the communication team. Every event type has a standard **post plan** (announcement, reminder, day-of story, aftermovie, ...) with an offset in days and a **default posting time** (e.g. 18:00). Add activities (or import them, see below) and the full posting schedule is generated. If two posts land on the same day at the same time, the later one is automatically shifted one hour and flagged, so posts never overlap. Times remain editable per post. The .ics export creates **30-minute calendar blocks** (e.g. 18:00–18:30) so posts are clearly visible in Google Calendar.
+Separate tab for the communication team. Every event type has a standard **post plan** (announcement, reminder, day-of story, aftermovie, ...) with an offset in days and a **default posting time** (e.g. 18:00). There is also a **weekly recurring post** section for posts that go out every week at the same moment (e.g. the weekly overview): pick a name, channel, weekday, time and period, and one post per week is generated — with the same collision handling, statuses and exports as regular posts. Add activities (or import them, see below) and the full posting schedule is generated. If two posts land on the same day at the same time, the later one is automatically shifted one hour and flagged, so posts never overlap. Times remain editable per post. The .ics export creates **30-minute calendar blocks** (e.g. 18:00–18:30) so posts are clearly visible in Google Calendar.
 
 The communication Excel exports are **organised per semester week** (semester start dates are configurable in `config.json` / the Admin tab):
 

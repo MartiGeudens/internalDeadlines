@@ -173,6 +173,24 @@
     <div style="margin-top:16px"><button class="primary" onclick="addCommActivity()">Add activity</button></div>
   </div>
 
+  <div class="card">
+    <h2>2. Weekly recurring post</h2>
+    <p class="muted">For posts that go out every week at the same moment (e.g. the weekly overview). One post is generated for every week in the chosen period; they follow the same collision rules, statuses and exports as regular posts.</p>
+    <div class="row" style="align-items:flex-end">
+      <div style="max-width:220px"><label>Post name</label><input id="weeklyName" placeholder="e.g. Weekly overview" value="Weekly overview"></div>
+      <div style="max-width:190px"><label>Channel</label><input id="weeklyChannel" list="channelList" placeholder="e.g. Instagram story"></div>
+      <div style="max-width:170px"><label>Responsible</label><input id="weeklyResp" placeholder="e.g. Luca"></div>
+      <div style="max-width:140px"><label>Day of week</label><select id="weeklyDay">
+        <option value="1" selected>Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>
+        <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
+      </select></div>
+      <div style="max-width:110px"><label>Time</label><input type="time" id="weeklyTime" value="18:00"></div>
+      <div style="max-width:150px"><label>From</label><input type="date" id="weeklyFrom"></div>
+      <div style="max-width:150px"><label>Until</label><input type="date" id="weeklyUntil"></div>
+      <div style="max-width:170px"><button class="primary" onclick="addWeeklyPosts()">Add weekly posts</button></div>
+    </div>
+  </div>
+
   <div class="card hidden" id="commPendingCard">
     <h2>&#9203; Imported without a plan</h2>
     <p class="muted">These imported activities had an unrecognised event type (e.g. "Other"). Their dates are kept &mdash; assign an event type, or use <i>Set up manually</i> to build the post plan yourself.</p>
@@ -180,7 +198,7 @@
   </div>
 
   <div class="card">
-    <h2>2. Post plan overview</h2>
+    <h2>3. Post plan overview</h2>
     <div class="toolbar">
       <label class="secondary" style="cursor:pointer;margin:0">&#128229; Import Excel/CSV
         <input type="file" accept=".xlsx,.csv" style="display:none" onchange="startImport(event,'comm')"></label>
@@ -355,7 +373,7 @@ fetch('config.json').then(r => r.ok ? r.json() : null).then(c => { if (c) config
 
 function renderAll(){
   renderRoleSelect(); renderTypeSelect(); renderOtherChecklist(); renderAdmin(); renderOverview();
-  renderCommTypeSelect(); renderChannelList(); renderCommOverview();
+  renderCommTypeSelect(); renderChannelList(); setWeeklyDefaults(); renderCommOverview();
   try {
     const gh = JSON.parse(localStorage.getItem('ghRepoInfo'));
     if (gh){ ghOwner.value = gh.owner; ghRepo.value = gh.repo; ghBranch.value = gh.branch; }
@@ -504,6 +522,18 @@ function pushDlActivity(name, resp, typeName, eventDate, dls){
 function removeActivity(id){ activities = activities.filter(a => a.id !== id); renderOverview(); }
 function setStatus(aid, i, val){ const a = activities.find(x => x.id === aid); a.deadlines[i].status = val; renderOverview(); }
 function setDlResp(aid, i, val){ const a = activities.find(x => x.id === aid); a.deadlines[i].resp = val; saveState(); }
+function setActResp(aid, val){
+  const a = activities.find(x => x.id === aid);
+  a.deadlines.forEach(d => { if (d.resp === a.resp) d.resp = val; }); // update deadlines still on the old default
+  a.resp = val;
+  renderOverview();
+}
+function setCommActResp(aid, val){
+  const a = commActivities.find(x => x.id === aid);
+  a.deadlines.forEach(d => { if (d.resp === a.resp) d.resp = val; });
+  a.resp = val;
+  renderCommOverview();
+}
 
 function fmt(d){ return d.toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }); }
 function warnings(d){
@@ -520,7 +550,7 @@ function renderOverview(){
   body.innerHTML = activities.map(a => {
     let html = `<tr class="activity-row">
       <td>${esc(a.name)} <span class="muted">(${esc(a.typeName)})</span></td>
-      <td>${esc(a.resp)}</td>
+      <td><input value="${esc(a.resp)}" placeholder="Responsible…" style="max-width:150px;padding:4px 8px" onchange="setActResp(${a.id},this.value.trim())"></td>
       <td>${fmt(a.date)}</td>
       <td></td>
       <td><button class="danger" onclick="removeActivity(${a.id})">remove</button></td></tr>`;
@@ -611,6 +641,38 @@ function pushCommActivity(name, resp, typeName, eventDate, plan){
   commActivities.sort((a,b) => a.date - b.date);
 }
 
+function addWeeklyPosts(){
+  const name = document.getElementById('weeklyName').value.trim() || 'Weekly overview';
+  const ch = document.getElementById('weeklyChannel').value.trim() || 'Instagram post';
+  const resp = document.getElementById('weeklyResp').value.trim();
+  const targetDay = parseInt(document.getElementById('weeklyDay').value); // 0=Sun .. 6=Sat (JS getDay)
+  const time = document.getElementById('weeklyTime').value || '18:00';
+  const from = document.getElementById('weeklyFrom').value;
+  const until = document.getElementById('weeklyUntil').value;
+  if (!from || !until) return alert('Fill in the From and Until dates of the period.');
+  const d = new Date(from + 'T12:00:00'), end = new Date(until + 'T12:00:00');
+  if (isNaN(d) || isNaN(end) || d > end) return alert('Invalid period: "From" must be before "Until".');
+  while (d.getDay() !== targetDay) d.setDate(d.getDate() + 1); // first occurrence of the chosen weekday
+  const deadlines = [];
+  while (d <= end){
+    deadlines.push({ name:`${name} — ${ch}`, date:new Date(d), time, status:'To Do', resp, recurring:true });
+    d.setDate(d.getDate() + 7);
+  }
+  if (!deadlines.length) return alert('The chosen weekday does not occur in the selected period.');
+  assignCommTimes(deadlines);
+  commActivities.push({ id:nextId++, name, resp, typeName:'Weekly recurring', date:deadlines[0].date, deadlines, recurring:true });
+  commActivities.sort((a,b) => a.date - b.date);
+  renderCommOverview();
+}
+function setWeeklyDefaults(){
+  const ay = config.academicYear || {};
+  const f = document.getElementById('weeklyFrom'), u = document.getElementById('weeklyUntil');
+  if (f && !f.value && ay.semester1Start) f.value = ay.semester1Start;
+  if (u && !u.value && ay.semester1Start){
+    const e = new Date(ay.semester1Start + 'T12:00:00'); e.setDate(e.getDate() + 13*7 - 1); // ± one semester
+    u.value = `${e.getFullYear()}-${pad2(e.getMonth()+1)}-${pad2(e.getDate())}`;
+  }
+}
 function removeCommActivity(id){ commActivities = commActivities.filter(a => a.id !== id); renderCommOverview(); }
 function setCommReq(id, val){ const a = commActivities.find(x => x.id === id); a.commReqStatus = val; renderCommOverview(); }
 
@@ -746,14 +808,14 @@ function renderCommOverview(){
     const cr = a.commReqStatus || 'To Do';
     let html = `<tr class="activity-row">
       <td>${esc(a.name)} <span class="muted">(${esc(a.typeName)} &middot; ${weekLabel(a.date).short})</span></td>
-      <td>${esc(a.resp)}</td>
+      <td><input value="${esc(a.resp)}" placeholder="Responsible…" style="max-width:150px;padding:4px 8px" onchange="setCommActResp(${a.id},this.value.trim())"></td>
       <td>${fmt(a.date)}</td>
       <td title="Communication request received from the organising function?"><select class="status-select status-${cr.replace(' ','')}" onchange="setCommReq(${a.id},this.value)">
         ${['To Do','Busy','Done'].map(s => `<option ${s===cr?'selected':''}>${s}</option>`).join('')}
       </select> <span class="muted">req</span></td>
       <td><button class="danger" onclick="removeCommActivity(${a.id})">remove</button></td></tr>`;
     html += a.deadlines.map((d,i) => `<tr>
-      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${offsetLabel(d.offset)})</span>${warnings(d.date)}${d.shifted?' <span class="warn">&#9202; shifted +1h (slot taken)</span>':''}</td>
+      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${d.recurring ? esc(weekLabel(d.date).short) : offsetLabel(d.offset)})</span>${warnings(d.date)}${d.shifted?' <span class="warn">&#9202; shifted +1h (slot taken)</span>':''}</td>
       <td><input value="${esc(d.resp)}" style="max-width:150px;padding:4px 8px" onchange="setCommResp(${a.id},${i},this.value)"></td>
       <td style="white-space:nowrap">${fmt(d.date)} <input type="time" value="${d.time||'18:00'}" style="width:auto;padding:3px 6px" onchange="setCommTime(${a.id},${i},this.value)"></td>
       <td><select class="status-select status-${d.status.replace(' ','')}" onchange="setCommStatus(${a.id},${i},this.value)">
@@ -869,7 +931,9 @@ function renderImportPreview(){
     const nameCell = r.status==='noname'
       ? `<input type="text" placeholder="Activity name…" value="${esc(r.stagedName||'')}" oninput="pendingImport.rows[${i}].stagedName=this.value" onblur="commitImportName(${i})" onkeydown="if(event.key==='Enter')this.blur()">`
       : (esc(r.name)||'<i>?</i>');
-    return `<tr class="${cls}"><td>${nameCell}</td><td>${typeCell}</td><td>${dateCell}</td><td>${esc(r.resp)}</td>
+    const respCell = r.status==='otherrole' ? esc(r.resp)
+      : `<input type="text" placeholder="Responsible…" value="${esc(r.resp)}" style="max-width:140px;padding:4px 8px" onchange="pendingImport.rows[${i}].resp=this.value.trim()">`;
+    return `<tr class="${cls}"><td>${nameCell}</td><td>${typeCell}</td><td>${dateCell}</td><td>${respCell}</td>
       <td style="display:${mode==='dl'?'':'none'}">${esc(r.role)}</td><td class="${r.status==='ok'?'':'warn'}">${statusCell}</td></tr>`;
   }).join('');
   document.getElementById('importOverlay').classList.remove('hidden');
@@ -937,7 +1001,7 @@ function renderPending(mode){
   const typeOpts = config.eventTypes.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('');
   body.innerHTML = list.map((a,i) => `<tr>
     <td><b>${esc(a.name)}</b> <span class="muted">(was: ${esc(a.rawType)||'?'})</span></td>
-    <td>${esc(a.resp)}</td>
+    <td><input value="${esc(a.resp)}" placeholder="Responsible…" style="max-width:150px;padding:4px 8px" onchange="pendingActs['${mode}'][${i}].resp=this.value.trim(); saveState()"></td>
     <td>${fmt(a.date)}</td>
     <td style="white-space:nowrap">
       <select style="width:auto;padding:4px 8px" onchange="pendingActs['${mode}'][${i}].sel=this.value">
