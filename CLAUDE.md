@@ -9,7 +9,8 @@ Statische single-page app voor **GitHub Pages** (geen backend). Flow:
 
 ## Bestanden
 - `index.html` — volledige app (UI + logica + embedded fallback-config). ExcelJS via cdnjs.
-- `config.json` — deadline-types (9 stuks, met defaultWeeks) + event-types (BSA, Cantus, Fakfeest) + rollenlijst. Wordt via fetch geladen; embedded DEFAULT_CONFIG in index.html is de fallback voor file:// gebruik. **Bij wijziging: beide synchroon houden.**
+- `config.json` — deadline-types (met defaultWeeks/defaultDays) + event-types + postTypes + rollenlijst. Wordt via fetch geladen; embedded DEFAULT_CONFIG in index.html is de fallback voor file:// gebruik. **Bij wijziging: beide synchroon houden.**
+- **Roles-structuur (sinds juli 2026)**: array van objecten `{ name, headResponsible }` — headResponsible = persoon die de functie momenteel leidt (mag leeg zijn; per functie, niet per activiteit). Beheer incl. headResponsible in de Roles-kaart van de admin-tab. `migrateConfig()` zet oude configs met roles-als-strings automatisch om naar `{ name, headResponsible:'' }`.
 - `.github/workflows/deploy.yml` — Pages-deploy; injecteert sha256-hash van secret `ADMIN_PASSWORD` op de plek van placeholder `__ADMIN_HASH__` in index.html (sed, placeholder mag maar 1× letterlijk in het bestand staan!).
 
 ## Admin-beveiliging & GitHub-publicatie
@@ -26,7 +27,8 @@ Statische single-page app voor **GitHub Pages** (geen backend). Flow:
 - Exports: **Excel** én **.ics** agenda.
 
 ## Excel-formaat (vast, door Marti aangeleverd screenshot)
-Gegroepeerd per activiteit. Headerrij per activiteit (bold, groene bovenrand): `Activiteitnaam | Hoofdverantwoordelijke | Datum activiteit | "Status"`. Daaronder per deadline: `Deadlinenaam | Verantwoordelijke | Datum deadline | Status`. Status heeft dropdown (To Do/Busy/Done) + kleuren: Done=groen (C6EFCE), Busy=geel (FFEB9C), To Do=rood (FFC7CE), plus conditional formatting zodat kleuren mee veranderen in Excel zelf.
+**Vast celcontract bovenaan (sinds juli 2026):** rij 1 = `A1` label "Hoofdverantwoordelijke functie", **`B1` = headResponsible van de geselecteerde rol**; rij 2 leeg; gegroepeerde content start op rij 3. **B1 niet verplaatsen**: het aparte deadlineNotifications-project (Teams-bot, andere repo) leest die cel uit via de Microsoft Graph API om die persoon te @mentionen.
+Daaronder gegroepeerd per activiteit. Headerrij per activiteit (bold, groene bovenrand): `Activiteitnaam | Hoofdverantwoordelijke | Datum activiteit | "Status"`. Daaronder per deadline: `Deadlinenaam | Verantwoordelijke | Datum deadline | Status`. Status heeft dropdown (To Do/Busy/Done) + kleuren: Done=groen (C6EFCE), Busy=geel (FFEB9C), To Do=rood (FFC7CE), plus conditional formatting zodat kleuren mee veranderen in Excel zelf.
 
 ## Communication planner (aparte tab)
 Voor team Communicatie: gedeelde **postTypes** in config (zoals deadlineTypes: id, naam, channel, `defaultDaysBefore` — negatief = ná het event — en `defaultTime`); per event-type een **commPlan** met referenties `{type, daysBefore, time}` (override per event). Admin: postTypes-kaart + checklist per event-type (zelfde patroon als deadlines). `resolveCommPlan(et)` zet referenties om naar concrete posts; `migrateConfig()` converteert oude inline commPlans automatisch bij load/upload. Zelfde flow als deadline planner: activiteiten toevoegen → postplan gegenereerd → zelfde Excel/ICS-export (functies zijn geparametriseerd: `exportExcel(list, fname)`, `exportICS(list, fname, timed)`). "Other" = checklist van postTypes (aanvinken + offset/tijd overriden, zoals de deadline-checklist in de dl-planner) + optioneel custom posts. Channels als datalist uit `config.commChannels`. Beheer van commPlans (incl. tijden) in de admin-tab per event-type. **Default commPlans zijn gokken van Claude, valideren met team Communicatie.**

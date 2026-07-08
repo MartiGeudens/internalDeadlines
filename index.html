@@ -281,7 +281,7 @@
   <div class="card">
     <details class="admin-sec">
       <summary>Roles (praesidium functions)</summary>
-      <p class="muted">Functions shown in step 1 of the deadline planner and used to filter the year-plan import (role column). Renaming a role here does not update the role names in existing import files.</p>
+      <p class="muted">Functions shown in step 1 of the deadline planner and used to filter the year-plan import (role column). The optional <b>head responsible</b> is the person currently leading that function; it is written to a fixed cell (B1) in the deadline Excel export. Renaming a role here does not update the role names in existing import files.</p>
       <div class="admin-grid" id="adminRoles"></div>
       <button class="secondary" style="margin-top:10px" onclick="adminAddRole()">+ Add role</button>
     </details>
@@ -384,7 +384,25 @@
 <script>
 /* ---------- Default config (fallback when config.json can't be fetched, e.g. file://) ---------- */
 const DEFAULT_CONFIG = {
-  roles: ["Praeses / Vice-praeses","Ab Actis","Quaestor","Bedrijvenrelaties","Onderwijs","Kursusdienst","Events","Sport","Ontspanning","Eerstejaarswerking","Cultuur","International","Communicatie","Support","IT","Fakbar","Lustrum"],
+  roles: [
+    { name:"Praeses / Vice-praeses", headResponsible:"Tim Ver Elst" },
+    { name:"Ab Actis", headResponsible:"Witse Tirry" },
+    { name:"Quaestor", headResponsible:"Marti Geudens" },
+    { name:"Bedrijvenrelaties", headResponsible:"Victor Vaes" },
+    { name:"Onderwijs", headResponsible:"Lucie Meeus" },
+    { name:"Kursusdienst", headResponsible:"Marcel Mugisha" },
+    { name:"Events", headResponsible:"Simon Ghijsbrecht" },
+    { name:"Sport", headResponsible:"Robbe Coeckelbergs" },
+    { name:"Ontspanning", headResponsible:"Jolan Vreysen" },
+    { name:"Eerstejaarswerking", headResponsible:"Xander Martens" },
+    { name:"Cultuur", headResponsible:"" },
+    { name:"International", headResponsible:"Fachrunnisa Hidayat" },
+    { name:"Communicatie", headResponsible:"Marti Geudens" },
+    { name:"Support", headResponsible:"Simon Pauwels" },
+    { name:"IT", headResponsible:"Timo Vandevenne" },
+    { name:"Fakbar", headResponsible:"" },
+    { name:"Lustrum", headResponsible:"" }
+  ],
   deadlineTypes: [
     { id:"communication", name:"Communication request", defaultWeeks:4 },
     { id:"material", name:"Material request", defaultWeeks:4 },
@@ -434,6 +452,8 @@ const DEFAULT_CONFIG = {
 /* Migrate configs with old-style inline commPlan entries ({name,channel,daysBefore,time})
    to the postTypes-based format ({type,daysBefore,time}). */
 function migrateConfig(){
+  // old format: roles as array of strings -> array of { name, headResponsible }
+  config.roles = (config.roles||[]).map(r => typeof r === 'string' ? { name:r, headResponsible:'' } : { headResponsible:'', ...r });
   if (!config.postTypes) config.postTypes = [];
   (config.eventTypes||[]).forEach(e => {
     e.commPlan = (e.commPlan||[]).map(p => {
@@ -558,9 +578,9 @@ async function commitToGitHub(){
 
 function renderRoleSelect(){
   const s = document.getElementById('roleSelect');
-  s.innerHTML = config.roles.map(r => `<option>${esc(r)}</option>`).join('');
+  s.innerHTML = config.roles.map(r => `<option>${esc(r.name)}</option>`).join('');
   const saved = localStorage.getItem('industriaRole');
-  if (saved && config.roles.includes(saved)) s.value = saved;
+  if (saved && config.roles.some(r => r.name === saved)) s.value = saved;
   s.onchange = () => localStorage.setItem('industriaRole', s.value);
 }
 function renderTypeSelect(){
@@ -1319,7 +1339,7 @@ async function downloadTemplate(mode){
     : ['activityName','eventType','activityDate','responsible'];
   ws.addRow(heads).font = { bold:true };
   const example = mode==='dl'
-    ? ['Opening BSA', config.eventTypes[0]?.name || 'BSA', '01/10/2026', 'Marti', config.roles[8] || 'Ontspanning']
+    ? ['Opening BSA', config.eventTypes[0]?.name || 'BSA', '01/10/2026', 'Marti', config.roles[8]?.name || 'Ontspanning']
     : ['Opening BSA', config.eventTypes[0]?.name || 'BSA', '01/10/2026', 'Luca'];
   ws.addRow(example);
   ws.columns = heads.map(() => ({ width: 22 }));
@@ -1370,6 +1390,15 @@ async function exportExcel(list = activities, fname = 'Industria_deadlines'){
   const ws = wb.addWorksheet('Deadlines', { views:[{ state:'frozen', ySplit:0 }] });
   ws.columns = [{ width:42 }, { width:26 }, { width:16 }, { width:12 }];
   const border = { top:{style:'thin',color:{argb:'FFDDDDDD'}}, bottom:{style:'thin',color:{argb:'FFDDDDDD'}} };
+
+  // FIXED CELL CONTRACT — do not move:
+  // row 1 = A1 label "Hoofdverantwoordelijke functie", B1 = head responsible of the selected role.
+  // B1 is read by the external deadlineNotifications Teams bot (Microsoft Graph API) to @mention this person.
+  // Row 2 stays empty; the grouped activity/deadline content starts at row 3.
+  const selRole = config.roles.find(r => r.name === document.getElementById('roleSelect').value);
+  const roleRow = ws.addRow(['Hoofdverantwoordelijke functie', selRole?.headResponsible || '']);
+  roleRow.getCell(1).font = { bold:true };
+  ws.addRow([]); // row 2: empty spacer
 
   list.forEach(a => {
     const hr = ws.addRow([a.name, a.resp, fmt(a.date), 'Status']);
@@ -1451,7 +1480,8 @@ function renderAdmin(){
 
   document.getElementById('adminRoles').innerHTML = (config.roles||[]).map((r,i) => `
     <div class="admin-row">
-      <input type="text" value="${esc(r)}" style="flex:1" onchange="adminSetRole(${i},this.value)">
+      <input type="text" value="${esc(r.name)}" style="flex:1" onchange="adminSetRole(${i},this.value)">
+      <input type="text" value="${esc(r.headResponsible||'')}" placeholder="Head responsible (optional)" style="flex:1" onchange="adminSetRoleHead(${i},this.value)">
       <button class="danger" onclick="config.roles.splice(${i},1); renderAdmin(); renderRoleSelect()">remove</button>
     </div>`).join('');
 
@@ -1511,13 +1541,14 @@ function renderAdmin(){
 }
 function adminSetRole(i, val){
   val = val.trim();
-  if (!val){ config.roles.splice(i,1); renderAdmin(); } else config.roles[i] = val;
+  if (!val){ config.roles.splice(i,1); renderAdmin(); } else config.roles[i].name = val;
   renderRoleSelect();
 }
+function adminSetRoleHead(i, val){ config.roles[i].headResponsible = val.trim(); }
 function adminAddRole(){
   const name = prompt('Name of the new role:'); if (!name || !name.trim()) return;
   if (!config.roles) config.roles = [];
-  config.roles.push(name.trim());
+  config.roles.push({ name:name.trim(), headResponsible:'' });
   renderAdmin(); renderRoleSelect();
 }
 function adminSetChannel(i, val){
