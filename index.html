@@ -61,6 +61,11 @@
   .admin-row input[type=number] { width: 80px; }
   .tag { display: inline-block; background: var(--ind-light); border-radius: 10px; padding: 2px 10px; font-size: .78rem; margin: 2px; }
   .et-block { border: 1px solid #e2e8e5; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  details.admin-sec > summary { font-size: 1.05rem; color: var(--ind-dark); font-family: 'Montserrat', 'Inter', sans-serif; font-weight: 600; cursor: pointer; }
+  details.admin-sec[open] > summary { margin-bottom: 14px; }
+  .et-block details { margin-top: 8px; }
+  .et-block details > summary { font-size: .8rem; font-weight: 600; color: #555; cursor: pointer; }
+  .et-block details[open] > summary { margin-bottom: 4px; }
   .et-block h3 { margin: 0 0 8px; font-size: .95rem; display: flex; justify-content: space-between; }
   footer { text-align: center; color: #999; font-size: .8rem; padding: 20px; }
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
@@ -105,11 +110,12 @@
       <div><label>Date of activity</label><input type="date" id="actDate"></div>
     </div>
     <div id="otherPanel" class="hidden" style="margin-top:12px">
-      <label>Select the deadlines for this activity (weeks before the event)</label>
+      <label>Select the deadlines for this activity (time before the event, in weeks or days)</label>
       <div class="checklist" id="otherChecklist"></div>
       <div class="row" style="margin-top:10px; align-items:flex-end">
         <div style="max-width:260px"><label>Custom deadline name</label><input id="customDlName" placeholder="e.g. DJ booking"></div>
-        <div style="max-width:110px"><label>Weeks before</label><input type="number" id="customDlWeeks" min="0" value="4"></div>
+        <div style="max-width:110px"><label>Time before</label><input type="number" id="customDlWeeks" min="0" value="4"></div>
+        <div style="max-width:120px"><label>Unit</label><select id="customDlUnit"><option value="weeks" selected>week(s)</option><option value="days">day(s)</option></select></div>
         <div style="max-width:120px"><button class="secondary" onclick="addCustomDeadline()">+ Add</button></div>
       </div>
       <div id="customDlList"></div>
@@ -159,35 +165,49 @@
       <div><label>Date of activity</label><input type="date" id="commDate"></div>
     </div>
     <div id="commOtherPanel" class="hidden" style="margin-top:12px">
-      <label>Build the post plan for this activity</label>
+      <label>Select the posts for this activity (days before the event; negative = after)</label>
+      <div class="checklist" id="commOtherChecklist"></div>
+      <label style="margin-top:12px">Or add a custom post</label>
       <div class="row" style="align-items:flex-end">
         <div style="max-width:240px"><label>Post name</label><input id="commPostName" placeholder="e.g. Announcement post"></div>
         <div style="max-width:200px"><label>Channel</label><input id="commPostChannel" list="channelList" placeholder="e.g. Instagram post"></div>
-        <div style="max-width:130px"><label>Days before event</label><input type="number" id="commPostDays" value="14"></div>
+        <div style="max-width:130px"><label>Time before event</label><input type="number" id="commPostDays" value="14"></div>
+        <div style="max-width:120px"><label>Unit</label><select id="commPostUnit"><option value="days" selected>day(s)</option><option value="weeks">week(s)</option></select></div>
         <div style="max-width:110px"><label>Time</label><input type="time" id="commPostTime" value="18:00"></div>
         <div style="max-width:120px"><button class="secondary" onclick="addCustomPost()">+ Add</button></div>
       </div>
-      <p class="muted" style="margin:4px 0 0">Use a negative number of days for posts <i>after</i> the event (e.g. aftermovie).</p>
+      <p class="muted" style="margin:4px 0 0">Use a negative number for posts <i>after</i> the event (e.g. aftermovie).</p>
       <div id="commPostList"></div>
     </div>
     <div style="margin-top:16px"><button class="primary" onclick="addCommActivity()">Add activity</button></div>
   </div>
 
   <div class="card">
-    <h2>2. Weekly recurring post</h2>
-    <p class="muted">For posts that go out every week at the same moment (e.g. the weekly overview). One post is generated for every week in the chosen period; they follow the same collision rules, statuses and exports as regular posts.</p>
+    <h2>2. Weekly recurring posts</h2>
+    <p class="muted">For posts that go out every week at the same moment (e.g. the weekly overview). Build a list of weekly posts (multiple channels at once), pick the period, and one post per week is generated for each. They follow the same collision rules, statuses and exports as regular posts.</p>
+    <label>Build the weekly post list</label>
     <div class="row" style="align-items:flex-end">
       <div style="max-width:220px"><label>Post name</label><input id="weeklyName" placeholder="e.g. Weekly overview" value="Weekly overview"></div>
       <div style="max-width:190px"><label>Channel</label><input id="weeklyChannel" list="channelList" placeholder="e.g. Instagram story"></div>
-      <div style="max-width:170px"><label>Responsible</label><input id="weeklyResp" placeholder="e.g. Luca"></div>
       <div style="max-width:140px"><label>Day of week</label><select id="weeklyDay">
         <option value="1" selected>Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>
         <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
       </select></div>
       <div style="max-width:110px"><label>Time</label><input type="time" id="weeklyTime" value="18:00"></div>
+      <div style="max-width:120px"><button class="secondary" onclick="addWeeklyItem()">+ Add</button></div>
+    </div>
+    <div id="weeklyItemList"></div>
+    <div class="row" style="align-items:flex-end; margin-top:12px">
+      <div style="max-width:170px"><label>Responsible</label><input id="weeklyResp" placeholder="e.g. Luca"></div>
       <div style="max-width:150px"><label>From</label><input type="date" id="weeklyFrom"></div>
       <div style="max-width:150px"><label>Until</label><input type="date" id="weeklyUntil"></div>
       <div style="max-width:170px"><button class="primary" onclick="addWeeklyPosts()">Add weekly posts</button></div>
+    </div>
+    <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+      <span class="muted">Quick period:</span>
+      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWeeklyPeriod('s1')">Semester 1</button>
+      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWeeklyPeriod('s2')">Semester 2</button>
+      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWeeklyPeriod('year')">Whole year</button>
     </div>
   </div>
 
@@ -204,7 +224,7 @@
         <input type="file" accept=".xlsx,.csv" style="display:none" onchange="startImport(event,'comm')"></label>
       <button class="secondary" onclick="downloadTemplate('comm')">&#11123; Import template</button>
       <button class="danger" onclick="clearAll('comm')">Clear all</button>
-      <span class="muted">Import columns: activityName, eventType, activityDate, responsible (optional). Posts on the same day &amp; time are automatically shifted one hour apart. Your plan is saved automatically in this browser.</span>
+      <span class="muted">Import columns: activityName, eventType, activityDate, responsible (optional). Posts of <i>different</i> activities on the same day &amp; time are automatically shifted one hour apart (posts of the same activity may coincide). Your plan is saved automatically in this browser.</span>
     </div>
     <p class="muted" id="commEmptyMsg">No activities yet.</p>
     <table id="commTable" class="hidden">
@@ -215,7 +235,7 @@
       <button class="primary" onclick="exportCommAgenda()">&#11123; Agenda per week (.xlsx)</button>
       <button class="primary" onclick="exportCommSchedule()">&#11123; Post schedule per week (.xlsx)</button>
       <button class="secondary" onclick="exportICS(commActivities,'Industria_communication_plan',true)">&#128197; Export calendar (.ics)</button>
-      <span class="muted">Agenda = all activities per semester week with a "comm request received" status. Post schedule = every post chronologically per week, never two at the same time.</span>
+      <span class="muted">Agenda = all activities per semester week with a "comm request received" status. Post schedule = every post chronologically per week; posts of different activities never coincide.</span>
     </div>
   </div>
 </div>
@@ -233,23 +253,56 @@
     <p class="warn hidden" id="adminPwErr" style="margin-bottom:0">Wrong password.</p>
   </div>
   <div id="adminContent" class="hidden">
-  <div class="card">
-    <h2>Deadline types (default weeks before event)</h2>
-    <div class="admin-grid" id="adminDeadlineTypes"></div>
-    <button class="secondary" style="margin-top:10px" onclick="adminAddDeadlineType()">+ Add deadline type</button>
+  <div id="cfgDirty" class="hidden" style="background:#fff4e0; border:1px solid #e6a23c; border-radius:8px; padding:10px 16px; margin-bottom:16px; font-size:.88rem; color:#8a5a00">
+    &#9998; <b>Unsaved configuration changes</b> — they apply in this session only. Publish to GitHub or download config.json below to keep them.
   </div>
   <div class="card">
-    <h2>Event types</h2>
-    <div id="adminEventTypes"></div>
-    <button class="secondary" onclick="adminAddEventType()">+ Add event type</button>
+    <details class="admin-sec">
+      <summary>Deadline types (default time before event)</summary>
+      <div class="admin-grid" id="adminDeadlineTypes"></div>
+      <button class="secondary" style="margin-top:10px" onclick="adminAddDeadlineType()">+ Add deadline type</button>
+    </details>
   </div>
   <div class="card">
-    <h2>Academic year</h2>
-    <p class="muted">Used by the communication exports to group everything per semester week.</p>
-    <div class="row" style="max-width:480px">
-      <div><label>Start semester 1</label><input type="date" id="ayS1" onchange="setAcademicYear()"></div>
-      <div><label>Start semester 2</label><input type="date" id="ayS2" onchange="setAcademicYear()"></div>
-    </div>
+    <details class="admin-sec">
+      <summary>Post types (default time before event, in days)</summary>
+      <p class="muted">Standard posts for the communication planner (name, channel, default days before the event — negative = after — and default posting time). Assign them per event type below, where the offset and time can be overridden.</p>
+      <div class="admin-grid" id="adminPostTypes"></div>
+      <button class="secondary" style="margin-top:10px" onclick="adminAddPostType()">+ Add post type</button>
+    </details>
+  </div>
+  <div class="card">
+    <details class="admin-sec">
+      <summary>Event types</summary>
+      <div id="adminEventTypes"></div>
+      <button class="secondary" onclick="adminAddEventType()">+ Add event type</button>
+    </details>
+  </div>
+  <div class="card">
+    <details class="admin-sec">
+      <summary>Roles (praesidium functions)</summary>
+      <p class="muted">Functions shown in step 1 of the deadline planner and used to filter the year-plan import (role column). Renaming a role here does not update the role names in existing import files.</p>
+      <div class="admin-grid" id="adminRoles"></div>
+      <button class="secondary" style="margin-top:10px" onclick="adminAddRole()">+ Add role</button>
+    </details>
+  </div>
+  <div class="card">
+    <details class="admin-sec">
+      <summary>Communication channels</summary>
+      <p class="muted">Channels suggested when building post plans (e.g. Instagram post, Mailing). Renaming a channel here does not change posts that already use the old name.</p>
+      <div class="admin-grid" id="adminChannels"></div>
+      <button class="secondary" style="margin-top:10px" onclick="adminAddChannel()">+ Add channel</button>
+    </details>
+  </div>
+  <div class="card">
+    <details class="admin-sec">
+      <summary>Academic year</summary>
+      <p class="muted">Used by the communication exports to group everything per semester week.</p>
+      <div class="row" style="max-width:480px">
+        <div><label>Start semester 1</label><input type="date" id="ayS1" onchange="setAcademicYear()"></div>
+        <div><label>Start semester 2</label><input type="date" id="ayS2" onchange="setAcademicYear()"></div>
+      </div>
+    </details>
   </div>
   <div class="card">
     <h2>Save configuration</h2>
@@ -262,18 +315,21 @@
     </div>
   </div>
   <div class="card">
-    <h2>&#128279; Link page &mdash; generate events.json</h2>
-    <p class="muted">Builds the <b>events.json</b> for the public link page (separate linktree repo). Import the same year-plan Excel as the planners (only <i>activityName</i> and <i>activityDate</i> are used), tick the events you want to promote, then download and upload the file to the linktree repository on GitHub. Ticket links are added later by editing the file directly on GitHub.</p>
+    <details class="admin-sec">
+      <summary>&#128279; Link page &mdash; generate events.json</summary>
+      <p class="muted">Builds the <b>events.json</b> for the public link page (separate linktree repo). Import the same year-plan Excel as the planners (only <i>activityName</i> and <i>activityDate</i> are used), tick the events you want to promote, then download and upload the file to the linktree repository on GitHub. Ticket links are added later by editing the file directly on GitHub.</p>
     <div class="export-bar">
       <label class="secondary" style="cursor:pointer;margin:0">&#128229; Import year plan (Excel/CSV)
         <input type="file" accept=".xlsx,.csv" style="display:none" onchange="startLinkImport(event)"></label>
       <span style="display:flex;align-items:center;gap:6px"><label style="margin:0">Events shown on page</label>
         <input type="number" id="linkShowN" min="1" max="10" value="3" style="width:64px"></span>
     </div>
+    </details>
   </div>
   <div class="card">
-    <h2>&#128640; Publish directly to GitHub</h2>
-    <p class="muted">Commits <b>config.json</b> straight to the repository (triggers automatic redeploy of this site). Requires a fine-grained personal access token with <i>Contents: read &amp; write</i> on this repo only &mdash; the token stays in this browser tab and is never stored or committed.</p>
+    <details class="admin-sec">
+      <summary>&#128640; Publish directly to GitHub</summary>
+      <p class="muted">Commits <b>config.json</b> straight to the repository (triggers automatic redeploy of this site). Requires a fine-grained personal access token with <i>Contents: read &amp; write</i> on this repo only &mdash; the token stays in this browser tab and is never stored or committed.</p>
     <div class="row">
       <div><label>Owner</label><input id="ghOwner" placeholder="e.g. martigeudens"></div>
       <div><label>Repository</label><input id="ghRepo" placeholder="e.g. internalDeadlines"></div>
@@ -284,6 +340,7 @@
       <div style="max-width:220px"><button class="primary" onclick="commitToGitHub()">Commit config.json</button></div>
     </div>
     <p id="ghStatus" class="muted" style="margin-bottom:0"></p>
+    </details>
   </div>
   </div><!-- /adminContent -->
 </div>
@@ -346,34 +403,84 @@ const DEFAULT_CONFIG = {
   ],
   academicYear: { semester1Start:"2026-09-21", semester2Start:"2027-02-08" },
   commChannels: ["Instagram post","Instagram story","Facebook event","Mailing","Website"],
+  postTypes: [
+    { id:"fbEvent", name:"Facebook event online", channel:"Facebook event", defaultDaysBefore:21, defaultTime:"18:00" },
+    { id:"announcement", name:"Announcement post", channel:"Instagram post", defaultDaysBefore:21, defaultTime:"18:00" },
+    { id:"reminderPost", name:"Reminder post", channel:"Instagram post", defaultDaysBefore:7, defaultTime:"18:00" },
+    { id:"dayStory", name:"Day-of story", channel:"Instagram story", defaultDaysBefore:0, defaultTime:"12:00" },
+    { id:"lineup", name:"Poster / line-up post", channel:"Instagram post", defaultDaysBefore:14, defaultTime:"18:00" },
+    { id:"reminderStory", name:"Reminder story", channel:"Instagram story", defaultDaysBefore:1, defaultTime:"12:00" },
+    { id:"aftermovie", name:"Aftermovie / recap", channel:"Instagram post", defaultDaysBefore:-3, defaultTime:"18:00" },
+    { id:"regReminder", name:"Registration reminder", channel:"Instagram story", defaultDaysBefore:10, defaultTime:"18:00" }
+  ],
   eventTypes: [
     { id:"bsa", name:"BSA",
       deadlines:[{type:"communication",weeks:4},{type:"netteDriver",weeks:1},{type:"publicDomain",weeks:4},{type:"food",weeks:3},{type:"material",weeks:4},{type:"materialOrder",weeks:3},{type:"van",weeks:2},{type:"room",weeks:4},{type:"shiftingList",weeks:3}],
-      commPlan:[{name:"Facebook event online",channel:"Facebook event",daysBefore:21,time:"18:00"},{name:"Announcement post",channel:"Instagram post",daysBefore:21,time:"18:00"},{name:"Reminder post",channel:"Instagram post",daysBefore:7,time:"18:00"},{name:"Day-of story",channel:"Instagram story",daysBefore:0,time:"12:00"}] },
+      commPlan:[{type:"fbEvent",daysBefore:21,time:"18:00"},{type:"announcement",daysBefore:21,time:"18:00"},{type:"reminderPost",daysBefore:7,time:"18:00"},{type:"dayStory",daysBefore:0,time:"12:00"}] },
     { id:"fakparty", name:"Fakparty",
       deadlines:[{type:"communication",weeks:4},{type:"fakpartyPromo",weeks:3},{type:"headtapper",weeks:4},{type:"materialOrder",weeks:3},{type:"shiftingList",weeks:3}],
-      commPlan:[{name:"Announcement post",channel:"Instagram post",daysBefore:28,time:"18:00"},{name:"Poster / line-up post",channel:"Instagram post",daysBefore:14,time:"18:00"},{name:"Reminder story",channel:"Instagram story",daysBefore:1,time:"12:00"},{name:"Aftermovie / recap",channel:"Instagram post",daysBefore:-3,time:"18:00"}] },
+      commPlan:[{type:"announcement",daysBefore:28,time:"18:00"},{type:"lineup",daysBefore:14,time:"18:00"},{type:"reminderStory",daysBefore:1,time:"12:00"},{type:"aftermovie",daysBefore:-3,time:"18:00"}] },
     { id:"cantus", name:"Cantus",
       deadlines:[{type:"communication",weeks:4},{type:"material",weeks:4},{type:"enrollmentForms",weeks:4},{type:"materialOrder",weeks:3},{type:"shiftingList",weeks:3}],
-      commPlan:[{name:"Announcement post",channel:"Instagram post",daysBefore:21,time:"18:00"},{name:"Registration reminder",channel:"Instagram story",daysBefore:10,time:"18:00"},{name:"Day-of story",channel:"Instagram story",daysBefore:0,time:"12:00"}] }
+      commPlan:[{type:"announcement",daysBefore:21,time:"18:00"},{type:"regReminder",daysBefore:10,time:"18:00"},{type:"dayStory",daysBefore:0,time:"12:00"}] }
   ]
 };
+
+/* Migrate configs with old-style inline commPlan entries ({name,channel,daysBefore,time})
+   to the postTypes-based format ({type,daysBefore,time}). */
+function migrateConfig(){
+  if (!config.postTypes) config.postTypes = [];
+  (config.eventTypes||[]).forEach(e => {
+    e.commPlan = (e.commPlan||[]).map(p => {
+      if (p.type) return p;
+      let pt = config.postTypes.find(t => t.name === p.name && t.channel === p.channel);
+      if (!pt){
+        pt = { id:slugId(p.name, config.postTypes), name:p.name, channel:p.channel, defaultDaysBefore:p.daysBefore, defaultTime:p.time||'18:00' };
+        config.postTypes.push(pt);
+      }
+      return { type:pt.id, daysBefore:p.daysBefore, time:p.time||'18:00' };
+    });
+  });
+}
+
+/* Resolve an event type's commPlan (postType references) to concrete posts. */
+function resolveCommPlan(et){
+  return (et.commPlan||[]).map(p => {
+    const pt = (config.postTypes||[]).find(t => t.id === p.type);
+    if (!pt) return null;
+    return { name:pt.name, channel:pt.channel,
+             daysBefore: p.daysBefore != null ? p.daysBefore : pt.defaultDaysBefore,
+             time: p.time || pt.defaultTime || '18:00' };
+  }).filter(Boolean);
+}
 
 let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
 let activities = [];   // {id,name,resp,typeName,date,deadlines:[{name,weeks,date,status,resp}]}
 let commActivities = []; // same shape; deadlines carry post tasks
 let pendingActs = { dl: [], comm: [] }; // imported activities without a recognised plan
+const adminOpen = {}; // open/closed state of the <details> sections per event type, survives re-renders
 let customDeadlines = []; // for "Other" form (deadline planner)
 let customPosts = [];     // for "Other" form (communication planner)
 let nextId = 1;
 
 /* ---------- init ---------- */
 loadState();
-fetch('config.json').then(r => r.ok ? r.json() : null).then(c => { if (c) config = c; renderAll(); }).catch(() => renderAll());
+fetch('config.json').then(r => r.ok ? r.json() : null).then(c => { if (c) config = c; migrateConfig(); renderAll(); markConfigSaved(); }).catch(() => { migrateConfig(); renderAll(); markConfigSaved(); });
+
+/* ---------- unsaved config changes indicator ---------- */
+let configBaseline = '';
+function markConfigSaved(){ configBaseline = JSON.stringify(config); updateCfgDirty(); }
+function configDirty(){ return configBaseline !== '' && JSON.stringify(config) !== configBaseline; }
+function updateCfgDirty(){
+  const el = document.getElementById('cfgDirty');
+  if (el) el.classList.toggle('hidden', !configDirty());
+}
+setInterval(updateCfgDirty, 1000);
+window.addEventListener('beforeunload', e => { if (configDirty()){ e.preventDefault(); e.returnValue = ''; } });
 
 function renderAll(){
   renderRoleSelect(); renderTypeSelect(); renderOtherChecklist(); renderAdmin(); renderOverview();
-  renderCommTypeSelect(); renderChannelList(); setWeeklyDefaults(); renderCommOverview();
+  renderCommTypeSelect(); renderChannelList(); renderCommOtherChecklist(); setWeeklyDefaults(); renderCommOverview();
   try {
     const gh = JSON.parse(localStorage.getItem('ghRepoInfo'));
     if (gh){ ghOwner.value = gh.owner; ghRepo.value = gh.repo; ghBranch.value = gh.branch; }
@@ -436,6 +543,7 @@ async function commitToGitHub(){
     if (res.ok){
       const j = await res.json();
       status.innerHTML = `&#9989; Committed! (<a href="${j.commit.html_url}" target="_blank">view commit</a>) The site redeploys automatically in ~1 minute.`;
+      markConfigSaved();
     } else {
       const err = await res.json().catch(() => ({}));
       status.innerHTML = `<span class="warn">GitHub error ${res.status}: ${esc(err.message || 'unknown')}. Check token permissions (Contents: read &amp; write) and repo name.</span>`;
@@ -461,16 +569,22 @@ function renderOtherChecklist(){
     <div class="item">
       <input type="checkbox" id="chk_${d.id}">
       <label for="chk_${d.id}" style="margin:0;font-weight:400;flex:1">${esc(d.name)}</label>
-      <input type="number" id="wk_${d.id}" min="0" value="${d.defaultWeeks}"> <span class="muted">wk</span>
+      <input type="number" id="wk_${d.id}" min="0" value="${d.defaultDays!=null?d.defaultDays:d.defaultWeeks}">
+      <select id="unit_${d.id}" style="width:auto;padding:4px 6px">
+        <option value="weeks" ${d.defaultDays!=null?'':'selected'}>wk</option>
+        <option value="days" ${d.defaultDays!=null?'selected':''}>d</option>
+      </select>
     </div>`).join('');
 }
+function dlOffsetLabel(d){ return d.days != null ? `${d.days} d before` : `${d.weeks} wk before`; }
 function addCustomDeadline(){
   const n = document.getElementById('customDlName').value.trim();
-  const w = parseInt(document.getElementById('customDlWeeks').value) || 0;
+  const v = parseInt(document.getElementById('customDlWeeks').value) || 0;
+  const unit = document.getElementById('customDlUnit').value;
   if (!n) return alert('Give the custom deadline a name.');
-  customDeadlines.push({ name:n, weeks:w });
+  customDeadlines.push(unit === 'days' ? { name:n, days:v } : { name:n, weeks:v });
   document.getElementById('customDlName').value = '';
-  document.getElementById('customDlList').innerHTML = customDeadlines.map(d => `<span class="tag">${esc(d.name)} (${d.weeks} wk)</span>`).join('');
+  document.getElementById('customDlList').innerHTML = customDeadlines.map(d => `<span class="tag">${esc(d.name)} (${d.days != null ? d.days+' d' : d.weeks+' wk'})</span>`).join('');
 }
 
 /* ---------- activities ---------- */
@@ -486,8 +600,11 @@ function addActivity(){
   if (typeId === '__other'){
     typeName = 'Other';
     config.deadlineTypes.forEach(d => {
-      if (document.getElementById('chk_'+d.id).checked)
-        dls.push({ name:d.name, weeks: parseInt(document.getElementById('wk_'+d.id).value)||0 });
+      if (document.getElementById('chk_'+d.id).checked){
+        const n = parseInt(document.getElementById('wk_'+d.id).value)||0;
+        const unit = document.getElementById('unit_'+d.id).value;
+        dls.push(unit === 'days' ? { name:d.name, days:n } : { name:d.name, weeks:n });
+      }
     });
     dls = dls.concat(customDeadlines);
     if (!dls.length) return alert('Select at least one deadline for this activity.');
@@ -496,7 +613,7 @@ function addActivity(){
     typeName = et.name;
     dls = et.deadlines.map(d => {
       const dt = config.deadlineTypes.find(t => t.id === d.type);
-      return { name: dt ? dt.name : d.type, weeks: d.weeks };
+      return { name: dt ? dt.name : d.type, weeks: d.weeks, days: d.days };
     });
   }
 
@@ -512,8 +629,9 @@ function addActivity(){
 
 function pushDlActivity(name, resp, typeName, eventDate, dls){
   const deadlines = dls.map(d => {
-    const dd = new Date(eventDate); dd.setDate(dd.getDate() - d.weeks*7);
-    return { name:d.name, weeks:d.weeks, date:dd, status:'To Do', resp:resp };
+    const offDays = d.days != null ? d.days : (d.weeks||0)*7;
+    const dd = new Date(eventDate); dd.setDate(dd.getDate() - offDays);
+    return { name:d.name, weeks:d.weeks, days:d.days, date:dd, status:'To Do', resp:resp };
   }).sort((a,b) => a.date - b.date);
   activities.push({ id:nextId++, name, resp, typeName, date:eventDate, deadlines });
   activities.sort((a,b) => a.date - b.date);
@@ -537,10 +655,7 @@ function setCommActResp(aid, val){
 
 function fmt(d){ return d.toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }); }
 function warnings(d){
-  const w = [];
-  if (d < new Date()) w.push('in the past!');
-  else if (d.getDay() === 0 || d.getDay() === 6) w.push('weekend');
-  return w.length ? ` <span class="warn">&#9888; ${w.join(', ')}</span>` : '';
+  return d < new Date() ? ' <span class="warn">&#9888; in the past!</span>' : '';
 }
 
 function renderOverview(){
@@ -555,7 +670,7 @@ function renderOverview(){
       <td></td>
       <td><button class="danger" onclick="removeActivity(${a.id})">remove</button></td></tr>`;
     html += a.deadlines.map((d,i) => `<tr>
-      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${d.weeks} wk before)</span>${warnings(d.date)}</td>
+      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${dlOffsetLabel(d)})</span>${warnings(d.date)}</td>
       <td><input value="${esc(d.resp)}" style="max-width:150px;padding:4px 8px" onchange="setDlResp(${a.id},${i},this.value)"></td>
       <td>${fmt(d.date)}</td>
       <td><select class="status-select status-${d.status.replace(' ','')}" onchange="setStatus(${a.id},${i},this.value)">
@@ -576,10 +691,22 @@ function renderCommTypeSelect(){
 function renderChannelList(){
   document.getElementById('channelList').innerHTML = (config.commChannels||[]).map(c => `<option value="${esc(c)}">`).join('');
 }
+function renderCommOtherChecklist(){
+  const c = document.getElementById('commOtherChecklist');
+  if (!c) return;
+  c.innerHTML = (config.postTypes||[]).map(pt => `
+    <div class="item">
+      <input type="checkbox" id="cpk_${pt.id}">
+      <label for="cpk_${pt.id}" style="margin:0;font-weight:400;flex:1">${esc(pt.name)} <span class="muted">(${esc(pt.channel)})</span></label>
+      <input type="number" id="cpd_${pt.id}" value="${pt.defaultDaysBefore}"> <span class="muted">d</span>
+      <input type="time" id="cpt_${pt.id}" value="${pt.defaultTime||'18:00'}" style="width:auto;padding:3px 6px">
+    </div>`).join('');
+}
 function addCustomPost(){
   const n = document.getElementById('commPostName').value.trim();
   const ch = document.getElementById('commPostChannel').value.trim() || 'Instagram post';
-  const d = parseInt(document.getElementById('commPostDays').value) || 0;
+  let d = parseInt(document.getElementById('commPostDays').value) || 0;
+  if (document.getElementById('commPostUnit').value === 'weeks') d *= 7;
   const t = document.getElementById('commPostTime').value || '18:00';
   if (!n) return alert('Give the post a name.');
   customPosts.push({ name:n, channel:ch, daysBefore:d, time:t });
@@ -588,9 +715,11 @@ function addCustomPost(){
 }
 function offsetLabel(d){ return d > 0 ? `${d} d before` : d < 0 ? `${-d} d after` : 'day of event'; }
 const pad2 = n => String(n).padStart(2,'0');
-/* If two posts (across all activities) land on the same day at the same time,
-   shift the new one +1h until the slot is free, and mark it. */
+/* If posts of two DIFFERENT activities land on the same day at the same time,
+   shift the new one +1h until the slot is free, and mark it.
+   Posts within the same activity may share a moment (e.g. Insta + Facebook together). */
 function assignCommTimes(deadlines){
+  // all `deadlines` belong to one new activity, so only slots of existing activities conflict
   const occupied = new Set();
   commActivities.forEach(a => a.deadlines.forEach(d => occupied.add(d.date.toDateString()+' '+d.time)));
   deadlines.forEach(d => {
@@ -598,7 +727,6 @@ function assignCommTimes(deadlines){
     d.shifted = false;
     while (occupied.has(d.date.toDateString()+' '+pad2(h)+':'+pad2(m)) && h < 23){ h++; d.shifted = true; }
     d.time = pad2(h)+':'+pad2(m);
-    occupied.add(d.date.toDateString()+' '+d.time);
   });
 }
 
@@ -613,12 +741,19 @@ function addCommActivity(){
   let plan, typeName;
   if (typeId === '__other'){
     typeName = 'Other';
-    plan = customPosts.slice();
-    if (!plan.length) return alert('Add at least one post for this activity.');
+    plan = [];
+    (config.postTypes||[]).forEach(pt => {
+      if (document.getElementById('cpk_'+pt.id)?.checked)
+        plan.push({ name:pt.name, channel:pt.channel,
+          daysBefore: parseInt(document.getElementById('cpd_'+pt.id).value)||0,
+          time: document.getElementById('cpt_'+pt.id).value || pt.defaultTime || '18:00' });
+    });
+    plan = plan.concat(customPosts);
+    if (!plan.length) return alert('Select or add at least one post for this activity.');
   } else {
     const et = config.eventTypes.find(e => e.id === typeId);
     typeName = et.name;
-    plan = (et.commPlan || []).slice();
+    plan = resolveCommPlan(et);
     if (!plan.length) return alert(`No communication plan defined for ${et.name} yet — add one via the Admin tab.`);
   }
 
@@ -628,6 +763,7 @@ function addCommActivity(){
   document.getElementById('commDate').value = '';
   customPosts = [];
   document.getElementById('commPostList').innerHTML = '';
+  (config.postTypes||[]).forEach(pt => { const c = document.getElementById('cpk_'+pt.id); if (c) c.checked = false; });
   renderCommOverview();
 }
 
@@ -641,37 +777,67 @@ function pushCommActivity(name, resp, typeName, eventDate, plan){
   commActivities.sort((a,b) => a.date - b.date);
 }
 
-function addWeeklyPosts(){
+let weeklyItems = []; // posts to generate weekly, built like the "Other" custom plan
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function addWeeklyItem(){
   const name = document.getElementById('weeklyName').value.trim() || 'Weekly overview';
   const ch = document.getElementById('weeklyChannel').value.trim() || 'Instagram post';
-  const resp = document.getElementById('weeklyResp').value.trim();
-  const targetDay = parseInt(document.getElementById('weeklyDay').value); // 0=Sun .. 6=Sat (JS getDay)
+  const day = parseInt(document.getElementById('weeklyDay').value); // 0=Sun .. 6=Sat (JS getDay)
   const time = document.getElementById('weeklyTime').value || '18:00';
+  weeklyItems.push({ name, ch, day, time });
+  document.getElementById('weeklyChannel').value = '';
+  renderWeeklyItems();
+}
+function renderWeeklyItems(){
+  document.getElementById('weeklyItemList').innerHTML = weeklyItems.map((it,i) =>
+    `<span class="tag">${esc(it.name)} — ${esc(it.ch)} (${DAY_NAMES[it.day]} ${it.time}) <a style="cursor:pointer;color:#b33" onclick="weeklyItems.splice(${i},1); renderWeeklyItems()">&times;</a></span>`).join('');
+}
+function addWeeklyPosts(){
+  const resp = document.getElementById('weeklyResp').value.trim();
   const from = document.getElementById('weeklyFrom').value;
   const until = document.getElementById('weeklyUntil').value;
   if (!from || !until) return alert('Fill in the From and Until dates of the period.');
-  const d = new Date(from + 'T12:00:00'), end = new Date(until + 'T12:00:00');
-  if (isNaN(d) || isNaN(end) || d > end) return alert('Invalid period: "From" must be before "Until".');
-  while (d.getDay() !== targetDay) d.setDate(d.getDate() + 1); // first occurrence of the chosen weekday
+  const start = new Date(from + 'T12:00:00'), end = new Date(until + 'T12:00:00');
+  if (isNaN(start) || isNaN(end) || start > end) return alert('Invalid period: "From" must be before "Until".');
+  // nothing added yet? use the current input fields as a single item, so the quick flow keeps working
+  const items = weeklyItems.length ? weeklyItems : [{
+    name: document.getElementById('weeklyName').value.trim() || 'Weekly overview',
+    ch: document.getElementById('weeklyChannel').value.trim() || 'Instagram post',
+    day: parseInt(document.getElementById('weeklyDay').value),
+    time: document.getElementById('weeklyTime').value || '18:00'
+  }];
   const deadlines = [];
-  while (d <= end){
-    deadlines.push({ name:`${name} — ${ch}`, date:new Date(d), time, status:'To Do', resp, recurring:true });
-    d.setDate(d.getDate() + 7);
-  }
-  if (!deadlines.length) return alert('The chosen weekday does not occur in the selected period.');
+  items.forEach(it => {
+    const d = new Date(start);
+    while (d.getDay() !== it.day) d.setDate(d.getDate() + 1); // first occurrence of the chosen weekday
+    while (d <= end){
+      deadlines.push({ name:`${it.name} — ${it.ch}`, date:new Date(d), time:it.time, status:'To Do', resp, recurring:true });
+      d.setDate(d.getDate() + 7);
+    }
+  });
+  if (!deadlines.length) return alert('The chosen weekday(s) do not occur in the selected period.');
+  deadlines.sort((a,b) => (a.date - b.date) || String(a.time).localeCompare(String(b.time)));
   assignCommTimes(deadlines);
-  commActivities.push({ id:nextId++, name, resp, typeName:'Weekly recurring', date:deadlines[0].date, deadlines, recurring:true });
+  const actName = items.length === 1 ? items[0].name : 'Weekly posts';
+  commActivities.push({ id:nextId++, name:actName, resp, typeName:'Weekly recurring', date:deadlines[0].date, deadlines, recurring:true });
   commActivities.sort((a,b) => a.date - b.date);
+  weeklyItems = [];
+  renderWeeklyItems();
   renderCommOverview();
 }
-function setWeeklyDefaults(){
+const isoDate = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+/* semester = 13 weeks from its start date (config.academicYear) */
+function setWeeklyPeriod(preset){
   const ay = config.academicYear || {};
-  const f = document.getElementById('weeklyFrom'), u = document.getElementById('weeklyUntil');
-  if (f && !f.value && ay.semester1Start) f.value = ay.semester1Start;
-  if (u && !u.value && ay.semester1Start){
-    const e = new Date(ay.semester1Start + 'T12:00:00'); e.setDate(e.getDate() + 13*7 - 1); // ± one semester
-    u.value = `${e.getFullYear()}-${pad2(e.getMonth()+1)}-${pad2(e.getDate())}`;
-  }
+  const s1 = ay.semester1Start || '2026-09-21', s2 = ay.semester2Start || '2027-02-08';
+  const plus13w = s => { const e = new Date(s + 'T12:00:00'); e.setDate(e.getDate() + 13*7 - 1); return isoDate(e); };
+  const p = { s1:[s1, plus13w(s1)], s2:[s2, plus13w(s2)], year:[s1, plus13w(s2)] }[preset];
+  document.getElementById('weeklyFrom').value = p[0];
+  document.getElementById('weeklyUntil').value = p[1];
+}
+function setWeeklyDefaults(){
+  const f = document.getElementById('weeklyFrom');
+  if (f && !f.value) setWeeklyPeriod('s1');
 }
 function removeCommActivity(id){ commActivities = commActivities.filter(a => a.id !== id); renderCommOverview(); }
 function setCommReq(id, val){ const a = commActivities.find(x => x.id === id); a.commReqStatus = val; renderCommOverview(); }
@@ -750,12 +916,19 @@ function weekSheet(wb, g, heads, widths){
 async function exportCommAgenda(){
   if (!commActivities.length) return alert('Add at least one activity first.');
   const wb = new ExcelJS.Workbook();
-  const sorted = [...commActivities].sort((a,b) => a.date - b.date);
-  groupByWeek(sorted, a => a.date).forEach(g => {
+  // normal activities: one row in the week of the event.
+  // recurring activities (weekly posts): one row in EVERY week they have a post, so they are never forgotten.
+  const entries = [];
+  commActivities.forEach(a => {
+    if (a.recurring) a.deadlines.forEach(d => entries.push({ a, d, date:d.date }));
+    else entries.push({ a, date:a.date });
+  });
+  entries.sort((x,y) => x.date - y.date);
+  groupByWeek(entries, e => e.date).forEach(g => {
     const ws = weekSheet(wb, g, ['Activity','Event type','Responsible','Date','Comm request'], [36,16,20,14,14]);
-    g.items.forEach(a => {
-      const st = a.commReqStatus || 'To Do';
-      const r = ws.addRow([a.name, a.typeName, a.resp, fmt(a.date), st]);
+    g.items.forEach(e => {
+      const st = e.d ? e.d.status : (e.a.commReqStatus || 'To Do');
+      const r = ws.addRow([e.a.name, e.a.typeName, e.d ? (e.d.resp || e.a.resp) : e.a.resp, fmt(e.date), st]);
       excelStatusCell(r.getCell(5), st);
     });
     excelStatusCF(ws, 'E');
@@ -772,13 +945,16 @@ async function exportCommSchedule(){
   const posts = [];
   commActivities.forEach(a => a.deadlines.forEach(d => posts.push({ a, d })));
   posts.sort((x,y) => (x.d.date - y.d.date) || String(x.d.time).localeCompare(String(y.d.time)));
-  const occupied = new Set();
+  const occupied = new Map(); // slot -> Set of activity ids (same activity may share a slot)
   let shiftedAny = false;
   posts.forEach(p => {
     let [h,m] = (p.d.time || '18:00').split(':').map(Number);
-    while (occupied.has(p.d.date.toDateString()+' '+pad2(h)+':'+pad2(m)) && h < 23){ h++; p.d.shifted = true; shiftedAny = true; }
+    const slot = () => p.d.date.toDateString()+' '+pad2(h)+':'+pad2(m);
+    const takenByOther = () => { const s = occupied.get(slot()); return s && [...s].some(id => id !== p.a.id); };
+    while (takenByOther() && h < 23){ h++; p.d.shifted = true; shiftedAny = true; }
     p.d.time = pad2(h)+':'+pad2(m);
-    occupied.add(p.d.date.toDateString()+' '+p.d.time);
+    if (!occupied.has(slot())) occupied.set(slot(), new Set());
+    occupied.get(slot()).add(p.a.id);
   });
   posts.sort((x,y) => (x.d.date - y.d.date) || String(x.d.time).localeCompare(String(y.d.time)));
   if (shiftedAny) renderCommOverview(); // reflect + persist the corrected times
@@ -796,7 +972,19 @@ async function exportCommSchedule(){
   download(new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
     `Industria_post_schedule_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
-function setCommTime(aid, i, val){ const a = commActivities.find(x => x.id === aid); a.deadlines[i].time = val || '18:00'; a.deadlines[i].shifted = false; saveState(); }
+function setCommTime(aid, i, val){
+  const a = commActivities.find(x => x.id === aid);
+  const d = a.deadlines[i];
+  d.time = val || '18:00';
+  d.shifted = false;
+  // live collision check against posts of OTHER activities (same activity may coincide)
+  const occupied = new Set();
+  commActivities.forEach(x => { if (x.id !== aid) x.deadlines.forEach(o => occupied.add(o.date.toDateString()+' '+o.time)); });
+  let [h,m] = d.time.split(':').map(Number);
+  while (occupied.has(d.date.toDateString()+' '+pad2(h)+':'+pad2(m)) && h < 23){ h++; d.shifted = true; }
+  d.time = pad2(h)+':'+pad2(m);
+  renderCommOverview(); // shows the corrected time + marker, persists via saveState
+}
 function setCommStatus(aid, i, val){ const a = commActivities.find(x => x.id === aid); a.deadlines[i].status = val; renderCommOverview(); }
 function setCommResp(aid, i, val){ const a = commActivities.find(x => x.id === aid); a.deadlines[i].resp = val; saveState(); }
 
@@ -974,11 +1162,11 @@ function confirmImport(){
       if (mode === 'dl'){
         const dls = et.deadlines.map(d => {
           const dt = config.deadlineTypes.find(t => t.id === d.type);
-          return { name: dt ? dt.name : d.type, weeks: d.weeks };
+          return { name: dt ? dt.name : d.type, weeks: d.weeks, days: d.days };
         });
         pushDlActivity(r.name, r.resp, et.name, r.date, dls);
       } else {
-        pushCommActivity(r.name, r.resp, et.name, r.date, (et.commPlan||[]));
+        pushCommActivity(r.name, r.resp, et.name, r.date, resolveCommPlan(et));
       }
       n++;
     } else if (r.status === 'badtype' && r.name && r.date){
@@ -1019,12 +1207,13 @@ function applyPending(mode, i){
   if (mode === 'dl'){
     const dls = et.deadlines.map(d => {
       const dt = config.deadlineTypes.find(t => t.id === d.type);
-      return { name: dt ? dt.name : d.type, weeks: d.weeks };
+      return { name: dt ? dt.name : d.type, weeks: d.weeks, days: d.days };
     });
     pushDlActivity(a.name, a.resp, et.name, a.date, dls);
   } else {
-    if (!(et.commPlan||[]).length) return alert(`No communication plan defined for ${et.name} yet — add one via the Admin tab.`);
-    pushCommActivity(a.name, a.resp, et.name, a.date, et.commPlan);
+    const plan = resolveCommPlan(et);
+    if (!plan.length) return alert(`No communication plan defined for ${et.name} yet — add one via the Admin tab.`);
+    pushCommActivity(a.name, a.resp, et.name, a.date, plan);
   }
   pendingActs[mode].splice(i,1);
   renderOverview(); renderCommOverview();
@@ -1247,9 +1436,34 @@ function renderAdmin(){
   dt.innerHTML = config.deadlineTypes.map((d,i) => `
     <div class="admin-row">
       <input type="text" value="${esc(d.name)}" onchange="config.deadlineTypes[${i}].name=this.value; renderOtherChecklist()">
-      <input type="number" min="0" value="${d.defaultWeeks}" onchange="config.deadlineTypes[${i}].defaultWeeks=parseInt(this.value)||0; renderOtherChecklist()">
-      <span class="muted">weeks</span>
+      <input type="number" min="0" value="${d.defaultDays!=null?d.defaultDays:d.defaultWeeks}" onchange="adminDtOffset(${i},this.value)">
+      <select style="width:auto;padding:4px 6px" onchange="adminDtUnit(${i},this.value)">
+        <option value="weeks" ${d.defaultDays!=null?'':'selected'}>weeks</option>
+        <option value="days" ${d.defaultDays!=null?'selected':''}>days</option>
+      </select>
       <button class="danger" onclick="config.deadlineTypes.splice(${i},1); renderAll()">remove</button>
+    </div>`).join('');
+
+  document.getElementById('adminRoles').innerHTML = (config.roles||[]).map((r,i) => `
+    <div class="admin-row">
+      <input type="text" value="${esc(r)}" style="flex:1" onchange="adminSetRole(${i},this.value)">
+      <button class="danger" onclick="config.roles.splice(${i},1); renderAdmin(); renderRoleSelect()">remove</button>
+    </div>`).join('');
+
+  document.getElementById('adminChannels').innerHTML = (config.commChannels||[]).map((c,i) => `
+    <div class="admin-row">
+      <input type="text" value="${esc(c)}" style="flex:1" onchange="adminSetChannel(${i},this.value)">
+      <button class="danger" onclick="config.commChannels.splice(${i},1); renderAdmin(); renderChannelList()">remove</button>
+    </div>`).join('');
+
+  document.getElementById('adminPostTypes').innerHTML = (config.postTypes||[]).map((p,i) => `
+    <div class="admin-row">
+      <input type="text" value="${esc(p.name)}" onchange="adminPtSet(${i},'name',this.value); renderAdmin()">
+      <input type="text" list="channelList" value="${esc(p.channel)}" style="flex:1" onchange="adminPtSet(${i},'channel',this.value)">
+      <input type="number" value="${p.defaultDaysBefore}" onchange="adminPtSet(${i},'defaultDaysBefore',parseInt(this.value)||0); renderAdmin()">
+      <span class="muted">d</span>
+      <input type="time" value="${p.defaultTime||'18:00'}" style="width:auto" onchange="adminPtSet(${i},'defaultTime',this.value)">
+      <button class="danger" onclick="adminRemovePostType(${i})">remove</button>
     </div>`).join('');
 
   const et = document.getElementById('adminEventTypes');
@@ -1257,49 +1471,120 @@ function renderAdmin(){
     <div class="et-block">
       <h3><input type="text" value="${esc(e.name)}" style="max-width:240px" onchange="config.eventTypes[${i}].name=this.value; renderTypeSelect()">
         <button class="danger" onclick="config.eventTypes.splice(${i},1); renderAll()">remove event type</button></h3>
+      <details ${adminOpen[e.id+':dl']?'open':''} ontoggle="adminOpen['${e.id}:dl']=this.open">
+        <summary>Internal deadlines (time before event, in weeks or days)</summary>
       <div class="checklist">
         ${config.deadlineTypes.map(d => {
           const dl = e.deadlines.find(x => x.type === d.id);
           return `<div class="item">
             <input type="checkbox" ${dl?'checked':''} onchange="adminToggle(${i},'${d.id}',this.checked)">
             <span style="flex:1">${esc(d.name)}</span>
-            <input type="number" min="0" value="${dl?dl.weeks:d.defaultWeeks}" ${dl?'':'disabled'} onchange="adminWeeks(${i},'${d.id}',this.value)"> <span class="muted">wk</span>
+            <input type="number" min="0" value="${dl ? (dl.days!=null?dl.days:dl.weeks) : (d.defaultDays!=null?d.defaultDays:d.defaultWeeks)}" ${dl?'':'disabled'} onchange="adminDlOffset(${i},'${d.id}',this.value)">
+            <select style="width:auto;padding:4px 6px" ${dl?'':'disabled'} onchange="adminDlUnit(${i},'${d.id}',this.value)">
+              <option value="weeks" ${(dl ? dl.days!=null : d.defaultDays!=null)?'':'selected'}>wk</option>
+              <option value="days" ${(dl ? dl.days!=null : d.defaultDays!=null)?'selected':''}>d</option>
+            </select>
           </div>`; }).join('')}
       </div>
-      <div style="margin-top:12px">
-        <label>Communication plan (days before event; negative = after)</label>
-        <div class="admin-grid">
-          ${(e.commPlan||[]).map((p,pi) => `
-          <div class="admin-row">
-            <input type="text" value="${esc(p.name)}" onchange="adminCommSet(${i},${pi},'name',this.value)">
-            <input type="text" list="channelList" value="${esc(p.channel)}" style="flex:1" onchange="adminCommSet(${i},${pi},'channel',this.value)">
-            <input type="number" value="${p.daysBefore}" onchange="adminCommSet(${i},${pi},'daysBefore',parseInt(this.value)||0)">
-            <span class="muted">days</span>
-            <input type="time" value="${p.time||'18:00'}" style="width:auto" onchange="adminCommSet(${i},${pi},'time',this.value)">
-            <button class="danger" onclick="adminCommRemove(${i},${pi})">remove</button>
-          </div>`).join('')}
+      </details>
+      <details ${adminOpen[e.id+':comm']?'open':''} ontoggle="adminOpen['${e.id}:comm']=this.open">
+        <summary>Communication plan (days before event; negative = after)</summary>
+        <div class="checklist">
+          ${(config.postTypes||[]).map(pt => {
+            const p = (e.commPlan||[]).find(x => x.type === pt.id);
+            const days = p ? (p.daysBefore != null ? p.daysBefore : pt.defaultDaysBefore) : pt.defaultDaysBefore;
+            const time = p ? (p.time || pt.defaultTime) : pt.defaultTime;
+            return `<div class="item">
+              <input type="checkbox" ${p?'checked':''} onchange="adminPostToggle(${i},'${pt.id}',this.checked)">
+              <span style="flex:1">${esc(pt.name)} <span class="muted">(${esc(pt.channel)})</span></span>
+              <input type="number" value="${days}" ${p?'':'disabled'} onchange="adminPostSet(${i},'${pt.id}','daysBefore',parseInt(this.value)||0)"> <span class="muted">d</span>
+              <input type="time" value="${time||'18:00'}" ${p?'':'disabled'} style="width:auto;padding:3px 6px" onchange="adminPostSet(${i},'${pt.id}','time',this.value)">
+            </div>`; }).join('')}
         </div>
-        <button class="secondary" style="margin-top:6px" onclick="adminCommAdd(${i})">+ Add post</button>
-      </div>
+      </details>
     </div>`).join('');
 }
-function adminCommSet(ei, pi, field, val){ config.eventTypes[ei].commPlan[pi][field] = val; }
-function adminCommRemove(ei, pi){ config.eventTypes[ei].commPlan.splice(pi,1); renderAdmin(); }
-function adminCommAdd(ei){
+function adminSetRole(i, val){
+  val = val.trim();
+  if (!val){ config.roles.splice(i,1); renderAdmin(); } else config.roles[i] = val;
+  renderRoleSelect();
+}
+function adminAddRole(){
+  const name = prompt('Name of the new role:'); if (!name || !name.trim()) return;
+  if (!config.roles) config.roles = [];
+  config.roles.push(name.trim());
+  renderAdmin(); renderRoleSelect();
+}
+function adminSetChannel(i, val){
+  val = val.trim();
+  if (!val){ config.commChannels.splice(i,1); renderAdmin(); } else config.commChannels[i] = val;
+  renderChannelList();
+}
+function adminAddChannel(){
+  const name = prompt('Name of the new channel:', 'Instagram post'); if (!name || !name.trim()) return;
+  if (!config.commChannels) config.commChannels = [];
+  config.commChannels.push(name.trim());
+  renderAdmin(); renderChannelList();
+}
+function adminPtSet(i, field, val){ config.postTypes[i][field] = val; renderCommOtherChecklist(); }
+function adminAddPostType(){
+  const name = prompt('Name of the new post type:'); if (!name || !name.trim()) return;
+  if (!config.postTypes) config.postTypes = [];
+  config.postTypes.push({ id:slugId(name.trim(), config.postTypes), name:name.trim(),
+    channel:(config.commChannels||['Instagram post'])[0], defaultDaysBefore:14, defaultTime:'18:00' });
+  renderAdmin(); renderCommOtherChecklist();
+}
+function adminRemovePostType(i){
+  const pt = config.postTypes[i];
+  const used = (config.eventTypes||[]).filter(e => (e.commPlan||[]).some(p => p.type === pt.id));
+  if (used.length && !confirm(`"${pt.name}" is used by: ${used.map(e=>e.name).join(', ')}. Remove it there too?`)) return;
+  config.eventTypes.forEach(e => { e.commPlan = (e.commPlan||[]).filter(p => p.type !== pt.id); });
+  config.postTypes.splice(i,1);
+  renderAdmin(); renderCommOtherChecklist();
+}
+function adminPostToggle(ei, ptId, on){
   const e = config.eventTypes[ei];
   if (!e.commPlan) e.commPlan = [];
-  e.commPlan.push({ name:'New post', channel:(config.commChannels||['Instagram post'])[0], daysBefore:14, time:'18:00' });
+  if (on){
+    const pt = config.postTypes.find(t => t.id === ptId);
+    e.commPlan.push({ type:ptId, daysBefore:pt.defaultDaysBefore, time:pt.defaultTime });
+  } else e.commPlan = e.commPlan.filter(p => p.type !== ptId);
   renderAdmin();
+}
+function adminPostSet(ei, ptId, field, val){
+  const p = config.eventTypes[ei].commPlan.find(x => x.type === ptId);
+  if (p) p[field] = val;
 }
 function adminToggle(ei, tid, on){
   const e = config.eventTypes[ei];
-  if (on){ const dt = config.deadlineTypes.find(d => d.id === tid); e.deadlines.push({ type:tid, weeks:dt.defaultWeeks }); }
+  if (on){
+    const dt = config.deadlineTypes.find(d => d.id === tid);
+    e.deadlines.push(dt.defaultDays != null ? { type:tid, days:dt.defaultDays } : { type:tid, weeks:dt.defaultWeeks });
+  }
   else e.deadlines = e.deadlines.filter(d => d.type !== tid);
   renderAdmin();
 }
-function adminWeeks(ei, tid, v){
+function adminDlOffset(ei, tid, v){
   const dl = config.eventTypes[ei].deadlines.find(d => d.type === tid);
-  if (dl) dl.weeks = parseInt(v)||0;
+  if (!dl) return;
+  if (dl.days != null) dl.days = parseInt(v)||0; else dl.weeks = parseInt(v)||0;
+}
+function adminDlUnit(ei, tid, unit){
+  const dl = config.eventTypes[ei].deadlines.find(d => d.type === tid);
+  if (!dl) return;
+  const n = dl.days != null ? dl.days : dl.weeks;
+  if (unit === 'days'){ dl.days = n; delete dl.weeks; } else { dl.weeks = n; delete dl.days; }
+}
+function adminDtOffset(i, v){
+  const d = config.deadlineTypes[i];
+  if (d.defaultDays != null) d.defaultDays = parseInt(v)||0; else d.defaultWeeks = parseInt(v)||0;
+  renderOtherChecklist();
+}
+function adminDtUnit(i, unit){
+  const d = config.deadlineTypes[i];
+  const n = d.defaultDays != null ? d.defaultDays : d.defaultWeeks;
+  if (unit === 'days'){ d.defaultDays = n; delete d.defaultWeeks; } else { d.defaultWeeks = n; delete d.defaultDays; }
+  renderOtherChecklist();
 }
 function slugId(name, existing){
   let base = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'item';
@@ -1320,11 +1605,12 @@ function adminAddEventType(){
 }
 function downloadConfig(){
   download(new Blob([JSON.stringify(config, null, 2)], { type:'application/json' }), 'config.json');
+  markConfigSaved();
 }
 function uploadConfig(ev){
   const f = ev.target.files[0]; if (!f) return;
   const r = new FileReader();
-  r.onload = () => { try { config = JSON.parse(r.result); renderAll(); alert('Config loaded.'); } catch { alert('Invalid JSON file.'); } };
+  r.onload = () => { try { config = JSON.parse(r.result); migrateConfig(); renderAll(); markConfigSaved(); alert('Config loaded.'); } catch { alert('Invalid JSON file.'); } };
   r.readAsText(f);
 }
 

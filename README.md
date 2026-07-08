@@ -10,7 +10,7 @@ A static single-page web app for [Industria](https://industria.be) (student asso
 
 1. **Select your function** (Ontspanning, Sport, Cultuur, ...).
 2. **Add your activities** for the year: name, main responsible, event type (BSA, Fakparty, Cantus, or *Other* with custom deadline selection) and date.
-3. All internal deadlines are **calculated automatically** (exactly X weeks before the event, with a warning when a deadline falls in a weekend or in the past).
+3. All internal deadlines are **calculated automatically** (exactly X weeks or days before the event, with a warning when a deadline falls in the past).
 4. **Export everything at once**:
    - **Excel (.xlsx)** — grouped per activity, with a Status column (To Do / Busy / Done) that has a dropdown and colour coding that keeps working inside Excel.
    - **Calendar (.ics)** — import all deadlines into Google/Outlook Calendar.
@@ -40,7 +40,7 @@ A static single-page web app for [Industria](https://industria.be) (student asso
 
 ### Communication planner
 
-Separate tab for the communication team. Every event type has a standard **post plan** (announcement, reminder, day-of story, aftermovie, ...) with an offset in days and a **default posting time** (e.g. 18:00). There is also a **weekly recurring post** section for posts that go out every week at the same moment (e.g. the weekly overview): pick a name, channel, weekday, time and period, and one post per week is generated — with the same collision handling, statuses and exports as regular posts. Add activities (or import them, see below) and the full posting schedule is generated. If two posts land on the same day at the same time, the later one is automatically shifted one hour and flagged, so posts never overlap. Times remain editable per post. The .ics export creates **30-minute calendar blocks** (e.g. 18:00–18:30) so posts are clearly visible in Google Calendar.
+Separate tab for the communication team. Every event type has a standard **post plan** (announcement, reminder, day-of story, aftermovie, ...) with an offset in days and a **default posting time** (e.g. 18:00). There is also a **weekly recurring posts** section for posts that go out every week at the same moment (e.g. the weekly overview): build a list of weekly posts — multiple channels at once, each with its own weekday and time — pick the period (quick presets: Semester 1 / Semester 2 / Whole year), and one post per week is generated for each — with the same collision handling, statuses and exports as regular posts. Everything added together counts as one activity, so those posts may share the same moment. In the "Agenda per week" export a recurring post appears in **every** week of its period, so it is never forgotten. Manually editing a post time immediately re-checks collisions with other activities. Add activities (or import them, see below) and the full posting schedule is generated. If posts of two *different* activities land on the same day at the same time, the later one is automatically shifted one hour and flagged, so posts of different events never overlap — posts belonging to the same activity (e.g. an Instagram and Facebook post together) may share the same moment. Times remain editable per post. The .ics export creates **30-minute calendar blocks** (e.g. 18:00–18:30) so posts are clearly visible in Google Calendar.
 
 The communication Excel exports are **organised per semester week** (semester start dates are configurable in `config.json` / the Admin tab):
 
@@ -59,17 +59,19 @@ Both planners have an **Import Excel/CSV** button so you don't have to type the 
 
 ### Saving your work
 
-The plan is **saved automatically in your browser** (localStorage) and survives a refresh. Use **Save plan** / **Load plan** to download it as a JSON file, share it, or continue on another computer. Nothing is stored on a server.
+The plan is **saved automatically in your browser** (localStorage) and survives a refresh. Note: it is tied to this browser on this computer — nothing is stored on a server, so use the Excel/calendar exports to share your planning.
 
 ## Admin mode
 
 The **Admin** tab lets you manage the shared deadline rules:
 
-- edit deadline types and their default number of weeks,
-- edit event types and which deadlines apply to them,
+- edit deadline types and their default offset (weeks or days),
+- edit event types, which deadlines apply to them, and their communication plans,
+- edit the list of roles (praesidium functions) and communication channels,
+- set the semester start dates (academic year),
 - add new deadline types and event types.
 
-Changes apply immediately in your session. To make them permanent for everyone, either:
+Changes apply immediately in your session; a banner warns while there are unsaved configuration changes (also on closing the tab). To make them permanent for everyone, either:
 
 - **Publish directly to GitHub** (recommended): fill in owner/repo/branch plus a fine-grained personal access token (*Contents: read & write*, this repo only) and click *Commit config.json*. The site redeploys automatically. The token is never stored.
 - **Download config.json** and commit it manually.
@@ -101,11 +103,20 @@ On the deployed site the Admin tab is protected with a password (see below). Whe
   "deadlineTypes": [
     { "id": "communication", "name": "Communication request", "defaultWeeks": 4 }
   ],
+  "postTypes": [
+    { "id": "announcement", "name": "Announcement post", "channel": "Instagram post", "defaultDaysBefore": 21, "defaultTime": "18:00" }
+  ],
   "eventTypes": [
-    { "id": "bsa", "name": "BSA", "deadlines": [ { "type": "communication", "weeks": 4 } ] }
+    { "id": "bsa", "name": "BSA",
+      "deadlines": [ { "type": "communication", "weeks": 4 } ],
+      "commPlan": [ { "type": "announcement", "daysBefore": 21, "time": "18:00" } ] }
   ]
 }
 ```
+
+Offsets can be given in weeks or days: use `defaultWeeks` **or** `defaultDays` on a deadline type, and `weeks` **or** `days` on an event-type deadline (days take precedence if both are present). The unit is also switchable per deadline in the Admin tab and in the *Other* activity form.
+
+Communication posts work like deadline types: `postTypes` defines the shared list (name, channel, default offset in days, default time), and each event type's `commPlan` references them by id with an optional per-event `daysBefore`/`time` override. Configs in the old format (inline `name`/`channel` per commPlan entry) are migrated automatically at load time.
 
 `config.json` is fetched at load time; if that fails (e.g. opening `index.html` directly from disk) the embedded default config in `index.html` is used. When editing by hand, keep both in sync.
 

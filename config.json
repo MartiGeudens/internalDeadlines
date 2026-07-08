@@ -35,6 +35,16 @@
   ],
   "academicYear": { "semester1Start": "2026-09-21", "semester2Start": "2027-02-08" },
   "commChannels": ["Instagram post", "Instagram story", "Facebook event", "Mailing", "Website"],
+  "postTypes": [
+    { "id": "fbEvent", "name": "Facebook event online", "channel": "Facebook event", "defaultDaysBefore": 21, "defaultTime": "18:00" },
+    { "id": "announcement", "name": "Announcement post", "channel": "Instagram post", "defaultDaysBefore": 21, "defaultTime": "18:00" },
+    { "id": "reminderPost", "name": "Reminder post", "channel": "Instagram post", "defaultDaysBefore": 7, "defaultTime": "18:00" },
+    { "id": "dayStory", "name": "Day-of story", "channel": "Instagram story", "defaultDaysBefore": 0, "defaultTime": "12:00" },
+    { "id": "lineup", "name": "Poster / line-up post", "channel": "Instagram post", "defaultDaysBefore": 14, "defaultTime": "18:00" },
+    { "id": "reminderStory", "name": "Reminder story", "channel": "Instagram story", "defaultDaysBefore": 1, "defaultTime": "12:00" },
+    { "id": "aftermovie", "name": "Aftermovie / recap", "channel": "Instagram post", "defaultDaysBefore": -3, "defaultTime": "18:00" },
+    { "id": "regReminder", "name": "Registration reminder", "channel": "Instagram story", "defaultDaysBefore": 10, "defaultTime": "18:00" }
+  ],
   "eventTypes": [
     {
       "id": "bsa",
@@ -51,10 +61,10 @@
         { "type": "shiftingList", "weeks": 3 }
       ],
       "commPlan": [
-        { "name": "Facebook event online", "channel": "Facebook event", "daysBefore": 21, "time": "18:00" },
-        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 21, "time": "18:00" },
-        { "name": "Reminder post", "channel": "Instagram post", "daysBefore": 7, "time": "18:00" },
-        { "name": "Day-of story", "channel": "Instagram story", "daysBefore": 0, "time": "12:00" }
+        { "type": "fbEvent", "daysBefore": 21, "time": "18:00" },
+        { "type": "announcement", "daysBefore": 21, "time": "18:00" },
+        { "type": "reminderPost", "daysBefore": 7, "time": "18:00" },
+        { "type": "dayStory", "daysBefore": 0, "time": "12:00" }
       ]
     },
     {
@@ -68,10 +78,10 @@
         { "type": "shiftingList", "weeks": 3 }
       ],
       "commPlan": [
-        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 28, "time": "18:00" },
-        { "name": "Poster / line-up post", "channel": "Instagram post", "daysBefore": 14, "time": "18:00" },
-        { "name": "Reminder story", "channel": "Instagram story", "daysBefore": 1, "time": "12:00" },
-        { "name": "Aftermovie / recap", "channel": "Instagram post", "daysBefore": -3, "time": "18:00" }
+        { "type": "announcement", "daysBefore": 28, "time": "18:00" },
+        { "type": "lineup", "daysBefore": 14, "time": "18:00" },
+        { "type": "reminderStory", "daysBefore": 1, "time": "12:00" },
+        { "type": "aftermovie", "daysBefore": -3, "time": "18:00" }
       ]
     },
     {
@@ -85,9 +95,9 @@
         { "type": "shiftingList", "weeks": 3 }
       ],
       "commPlan": [
-        { "name": "Announcement post", "channel": "Instagram post", "daysBefore": 21, "time": "18:00" },
-        { "name": "Registration reminder", "channel": "Instagram story", "daysBefore": 10, "time": "18:00" },
-        { "name": "Day-of story", "channel": "Instagram story", "daysBefore": 0, "time": "12:00" }
+        { "type": "announcement", "daysBefore": 21, "time": "18:00" },
+        { "type": "regReminder", "daysBefore": 10, "time": "18:00" },
+        { "type": "dayStory", "daysBefore": 0, "time": "12:00" }
       ]
     }
   ]
