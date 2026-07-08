@@ -15,90 +15,338 @@
     "Communicatie",
     "Support",
     "IT",
-    "Fakbar"
+    "Fakbar",
+    "Lustrum"
   ],
   "deadlineTypes": [
-    { "id": "communication", "name": "Communication request", "defaultWeeks": 4 },
-    { "id": "material", "name": "Material request", "defaultWeeks": 4 },
-    { "id": "materialOrder", "name": "Quaestor request (purchase of X)", "defaultWeeks": 3 },
-    { "id": "drinks", "name": "Drink request (order at Recup)", "defaultWeeks": 3 },
-    { "id": "food", "name": "Food request", "defaultWeeks": 3 },
-    { "id": "van", "name": "Nette request", "defaultWeeks": 2 },
-    { "id": "province", "name": "Provincie request", "defaultWeeks": 4 },
-    { "id": "publicDomain", "name": "IOD request", "defaultWeeks": 4 },
-    { "id": "room", "name": "Room KUL request", "defaultWeeks": 4 },
-    { "id": "fakpartyPromo", "name": "Arrange Fakparty promo with Quaestor", "defaultWeeks": 3 },
-    { "id": "netteDriver", "name": "Arrange Nette driver", "defaultWeeks": 1 },
-    { "id": "shiftingList", "name": "Create shiftinglist", "defaultWeeks": 3 },
-    { "id": "headtapper", "name": "Arrange headtapper", "defaultWeeks": 4 },
-    { "id": "enrollmentForms", "name": "Make Enrollment forms (to be submitted in communication request)", "defaultWeeks": 4 }
+    {
+      "id": "communication",
+      "name": "Communication request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "material",
+      "name": "Material request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "materialOrder",
+      "name": "Quaestor request (purchase of X)",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "drinks",
+      "name": "Drink request (order at Recup)",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "food",
+      "name": "Food request",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "van",
+      "name": "Nette request",
+      "defaultWeeks": 2
+    },
+    {
+      "id": "province",
+      "name": "Provincie request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "publicDomain",
+      "name": "IOD request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "room",
+      "name": "Room KUL request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "fakpartyPromo",
+      "name": "Arrange Fakparty promo with Quaestor",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "netteDriver",
+      "name": "Arrange Nette driver",
+      "defaultWeeks": 1
+    },
+    {
+      "id": "shiftingList",
+      "name": "Create shiftinglist",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "headtapper",
+      "name": "Arrange headtapper",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "enrollmentForms",
+      "name": "Make Enrollment forms (to be submitted in communication request)",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "create-wyder-event",
+      "name": "Create Wyder event",
+      "defaultWeeks": 1
+    },
+    {
+      "id": "reminder-message-in-whatsapp-community",
+      "name": "Reminder message in Whatsapp community",
+      "defaultDays": 2
+    }
   ],
-  "academicYear": { "semester1Start": "2026-09-21", "semester2Start": "2027-02-08" },
-  "commChannels": ["Instagram post", "Instagram story", "Facebook event", "Mailing", "Website"],
+  "academicYear": {
+    "semester1Start": "2026-09-21",
+    "semester2Start": "2027-02-08"
+  },
+  "commChannels": [
+    "Instagram post",
+    "Instagram story",
+    "Instagram reel",
+    "Facebook event",
+    "Whatsapp community",
+    "Paid meta ads",
+    "Website",
+    "Linktree",
+    "Mailing? (look into mailinglist marti!!!)"
+  ],
   "postTypes": [
-    { "id": "fbEvent", "name": "Facebook event online", "channel": "Facebook event", "defaultDaysBefore": 21, "defaultTime": "18:00" },
-    { "id": "announcement", "name": "Announcement post", "channel": "Instagram post", "defaultDaysBefore": 21, "defaultTime": "18:00" },
-    { "id": "reminderPost", "name": "Reminder post", "channel": "Instagram post", "defaultDaysBefore": 7, "defaultTime": "18:00" },
-    { "id": "dayStory", "name": "Day-of story", "channel": "Instagram story", "defaultDaysBefore": 0, "defaultTime": "12:00" },
-    { "id": "lineup", "name": "Poster / line-up post", "channel": "Instagram post", "defaultDaysBefore": 14, "defaultTime": "18:00" },
-    { "id": "reminderStory", "name": "Reminder story", "channel": "Instagram story", "defaultDaysBefore": 1, "defaultTime": "12:00" },
-    { "id": "aftermovie", "name": "Aftermovie / recap", "channel": "Instagram post", "defaultDaysBefore": -3, "defaultTime": "18:00" },
-    { "id": "regReminder", "name": "Registration reminder", "channel": "Instagram story", "defaultDaysBefore": 10, "defaultTime": "18:00" }
+    {
+      "id": "fbEvent",
+      "name": "Facebook event online",
+      "channel": "Facebook event",
+      "defaultDaysBefore": 21,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "announcement",
+      "name": "Announcement post",
+      "channel": "Instagram post",
+      "defaultDaysBefore": 21,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "reminderPost",
+      "name": "Reminder post",
+      "channel": "Instagram post",
+      "defaultDaysBefore": 7,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "dayStory",
+      "name": "Day-of story",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 0,
+      "defaultTime": "12:00"
+    },
+    {
+      "id": "lineup",
+      "name": "Poster / line-up post",
+      "channel": "Instagram post",
+      "defaultDaysBefore": 14,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "reminderStory",
+      "name": "Reminder story",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 1,
+      "defaultTime": "12:00"
+    },
+    {
+      "id": "aftermovie",
+      "name": "Aftermovie / recap",
+      "channel": "Instagram post",
+      "defaultDaysBefore": -3,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "regReminder",
+      "name": "Registration reminder",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 10,
+      "defaultTime": "18:00"
+    }
   ],
   "eventTypes": [
     {
       "id": "bsa",
       "name": "BSA",
       "deadlines": [
-        { "type": "communication", "weeks": 4 },
-        { "type": "netteDriver", "weeks": 1 },
-        { "type": "publicDomain", "weeks": 4 },
-        { "type": "food", "weeks": 3 },
-        { "type": "material", "weeks": 4 },
-        { "type": "materialOrder", "weeks": 3 },
-        { "type": "van", "weeks": 2 },
-        { "type": "room", "weeks": 4 },
-        { "type": "shiftingList", "weeks": 3 }
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "netteDriver",
+          "weeks": 1
+        },
+        {
+          "type": "publicDomain",
+          "weeks": 4
+        },
+        {
+          "type": "food",
+          "weeks": 3
+        },
+        {
+          "type": "material",
+          "weeks": 4
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "van",
+          "weeks": 2
+        },
+        {
+          "type": "room",
+          "weeks": 4
+        },
+        {
+          "type": "shiftingList",
+          "weeks": 3
+        }
       ],
       "commPlan": [
-        { "type": "fbEvent", "daysBefore": 21, "time": "18:00" },
-        { "type": "announcement", "daysBefore": 21, "time": "18:00" },
-        { "type": "reminderPost", "daysBefore": 7, "time": "18:00" },
-        { "type": "dayStory", "daysBefore": 0, "time": "12:00" }
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderPost",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "dayStory",
+          "daysBefore": 0,
+          "time": "12:00"
+        }
       ]
     },
     {
       "id": "fakparty",
       "name": "Fakparty",
       "deadlines": [
-        { "type": "communication", "weeks": 4 },
-        { "type": "fakpartyPromo", "weeks": 3 },
-        { "type": "headtapper", "weeks": 4 },
-        { "type": "materialOrder", "weeks": 3 },
-        { "type": "shiftingList", "weeks": 3 }
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "fakpartyPromo",
+          "weeks": 3
+        },
+        {
+          "type": "headtapper",
+          "weeks": 4
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "shiftingList",
+          "weeks": 3
+        }
       ],
       "commPlan": [
-        { "type": "announcement", "daysBefore": 28, "time": "18:00" },
-        { "type": "lineup", "daysBefore": 14, "time": "18:00" },
-        { "type": "reminderStory", "daysBefore": 1, "time": "12:00" },
-        { "type": "aftermovie", "daysBefore": -3, "time": "18:00" }
+        {
+          "type": "announcement",
+          "daysBefore": 28,
+          "time": "18:00"
+        },
+        {
+          "type": "lineup",
+          "daysBefore": 14,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "12:00"
+        },
+        {
+          "type": "aftermovie",
+          "daysBefore": -3,
+          "time": "18:00"
+        }
       ]
     },
     {
       "id": "cantus",
       "name": "Cantus",
       "deadlines": [
-        { "type": "communication", "weeks": 4 },
-        { "type": "material", "weeks": 4 },
-        { "type": "enrollmentForms", "weeks": 4 },
-        { "type": "materialOrder", "weeks": 3 },
-        { "type": "shiftingList", "weeks": 3 }
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "material",
+          "weeks": 4
+        },
+        {
+          "type": "enrollmentForms",
+          "weeks": 4
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "shiftingList",
+          "weeks": 3
+        }
       ],
       "commPlan": [
-        { "type": "announcement", "daysBefore": 21, "time": "18:00" },
-        { "type": "regReminder", "daysBefore": 10, "time": "18:00" },
-        { "type": "dayStory", "daysBefore": 0, "time": "12:00" }
+        {
+          "type": "announcement",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "regReminder",
+          "daysBefore": 10,
+          "time": "18:00"
+        },
+        {
+          "type": "dayStory",
+          "daysBefore": 0,
+          "time": "12:00"
+        }
       ]
+    },
+    {
+      "id": "social-run-sport",
+      "name": "Social Run",
+      "deadlines": [
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "create-wyder-event",
+          "weeks": 1
+        },
+        {
+          "type": "reminder-message-in-whatsapp-community",
+          "days": 2
+        }
+      ],
+      "commPlan": []
     }
   ]
 }

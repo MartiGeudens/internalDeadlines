@@ -384,7 +384,7 @@
 <script>
 /* ---------- Default config (fallback when config.json can't be fetched, e.g. file://) ---------- */
 const DEFAULT_CONFIG = {
-  roles: ["Praeses / Vice-praeses","Ab Actis","Quaestor","Bedrijvenrelaties","Onderwijs","Kursusdienst","Events","Sport","Ontspanning","Eerstejaarswerking","Cultuur","International","Communicatie","Support","IT","Fakbar"],
+  roles: ["Praeses / Vice-praeses","Ab Actis","Quaestor","Bedrijvenrelaties","Onderwijs","Kursusdienst","Events","Sport","Ontspanning","Eerstejaarswerking","Cultuur","International","Communicatie","Support","IT","Fakbar","Lustrum"],
   deadlineTypes: [
     { id:"communication", name:"Communication request", defaultWeeks:4 },
     { id:"material", name:"Material request", defaultWeeks:4 },
@@ -399,10 +399,12 @@ const DEFAULT_CONFIG = {
     { id:"netteDriver", name:"Arrange Nette driver", defaultWeeks:1 },
     { id:"shiftingList", name:"Create shiftinglist", defaultWeeks:3 },
     { id:"headtapper", name:"Arrange headtapper", defaultWeeks:4 },
-    { id:"enrollmentForms", name:"Make Enrollment forms (to be submitted in communication request)", defaultWeeks:4 }
+    { id:"enrollmentForms", name:"Make Enrollment forms (to be submitted in communication request)", defaultWeeks:4 },
+    { id:"create-wyder-event", name:"Create Wyder event", defaultWeeks:1 },
+    { id:"reminder-message-in-whatsapp-community", name:"Reminder message in Whatsapp community", defaultDays:2 }
   ],
   academicYear: { semester1Start:"2026-09-21", semester2Start:"2027-02-08" },
-  commChannels: ["Instagram post","Instagram story","Facebook event","Mailing","Website"],
+  commChannels: ["Instagram post","Instagram story","Instagram reel","Facebook event","Whatsapp community","Paid meta ads","Website","Linktree","Mailing? (look into mailinglist marti!!!)"],
   postTypes: [
     { id:"fbEvent", name:"Facebook event online", channel:"Facebook event", defaultDaysBefore:21, defaultTime:"18:00" },
     { id:"announcement", name:"Announcement post", channel:"Instagram post", defaultDaysBefore:21, defaultTime:"18:00" },
@@ -422,7 +424,10 @@ const DEFAULT_CONFIG = {
       commPlan:[{type:"announcement",daysBefore:28,time:"18:00"},{type:"lineup",daysBefore:14,time:"18:00"},{type:"reminderStory",daysBefore:1,time:"12:00"},{type:"aftermovie",daysBefore:-3,time:"18:00"}] },
     { id:"cantus", name:"Cantus",
       deadlines:[{type:"communication",weeks:4},{type:"material",weeks:4},{type:"enrollmentForms",weeks:4},{type:"materialOrder",weeks:3},{type:"shiftingList",weeks:3}],
-      commPlan:[{type:"announcement",daysBefore:21,time:"18:00"},{type:"regReminder",daysBefore:10,time:"18:00"},{type:"dayStory",daysBefore:0,time:"12:00"}] }
+      commPlan:[{type:"announcement",daysBefore:21,time:"18:00"},{type:"regReminder",daysBefore:10,time:"18:00"},{type:"dayStory",daysBefore:0,time:"12:00"}] },
+    { id:"social-run-sport", name:"Social Run",
+      deadlines:[{type:"communication",weeks:4},{type:"create-wyder-event",weeks:1},{type:"reminder-message-in-whatsapp-community",days:2}],
+      commPlan:[] }
   ]
 };
 
