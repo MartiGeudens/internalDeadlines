@@ -98,6 +98,11 @@
       "id": "reminder-message-in-whatsapp-community",
       "name": "Reminder message in Whatsapp community",
       "defaultDays": 2
+    },
+    {
+      "id": "finish-budget",
+      "name": "Finish budget and send to Q's",
+      "fixedDate": "2026-08-01"
     }
   ],
   "academicYear": {

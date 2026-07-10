@@ -116,6 +116,8 @@ On the deployed site the Admin tab is protected with a password (see below). Whe
 
 Offsets can be given in weeks or days: use `defaultWeeks` **or** `defaultDays` on a deadline type, and `weeks` **or** `days` on an event-type deadline (days take precedence if both are present). The unit is also switchable per deadline in the Admin tab and in the *Other* activity form.
 
+A deadline type can also be a **predetermined date** instead of an offset: give it `fixedDate: "YYYY-MM-DD"` (e.g. hand in budgets on 1 August). Its deadline always falls on that calendar date, regardless of the activity date. Event-type deadlines referencing a fixed type only need `{ "type": "<id>" }`; the date comes from the deadline type. The kind (weeks / days / predetermined date) is switchable per deadline type in the Admin tab. Update fixed dates yearly.
+
 Communication posts work like deadline types: `postTypes` defines the shared list (name, channel, default offset in days, default time), and each event type's `commPlan` references them by id with an optional per-event `daysBefore`/`time` override. Configs in the old format (inline `name`/`channel` per commPlan entry) are migrated automatically at load time.
 
 `config.json` is fetched at load time; if that fails (e.g. opening `index.html` directly from disk) the embedded default config in `index.html` is used. When editing by hand, keep both in sync.
