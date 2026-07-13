@@ -16,7 +16,9 @@
     { "name": "Support", "headResponsible": "Simon Pauwels" },
     { "name": "IT", "headResponsible": "Timo Vandevenne" },
     { "name": "Fakbar", "headResponsible": "" },
-    { "name": "Lustrum", "headResponsible": "" }
+    { "name": "Lustrum", "headResponsible": "" },
+    { "name": "Skiteam", "headResponsible": "" },
+    { "name": "Kiescomite", "headResponsible": "Tim Ver Elst" }
   ],
   "deadlineTypes": [
     {
@@ -103,6 +105,41 @@
       "id": "finish-budget",
       "name": "Finish budget and send to Q's",
       "fixedDate": "2026-08-01"
+    },
+    {
+      "id": "cash-register-request",
+      "name": "Cash register request",
+      "defaultWeeks": 2
+    },
+    {
+      "id": "request-bank-card",
+      "name": "Request bank card",
+      "defaultWeeks": 2
+    },
+    {
+      "id": "make-activity-on-website",
+      "name": "Make activity on website",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "make-draaiboek",
+      "name": "Make draaiboek",
+      "defaultWeeks": 2
+    },
+    {
+      "id": "make-form-on-website",
+      "name": "Make form on website",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "close-form-on-website",
+      "name": "Close form on website",
+      "defaultDays": 3
+    },
+    {
+      "id": "plan-meeting",
+      "name": "Plan meeting with {x}",
+      "defaultWeeks": 4
     }
   ],
   "academicYear": {
@@ -352,6 +389,96 @@
         }
       ],
       "commPlan": []
+    },
+    {
+      "id": "peme-activity",
+      "name": "PEME-activity",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "material", "weeks": 4 },
+        { "type": "room", "weeks": 4 }
+      ],
+      "commPlan": [
+        { "type": "announcement", "daysBefore": 14, "time": "18:00" },
+        { "type": "dayStory", "daysBefore": 0, "time": "12:00" }
+      ]
+    },
+    {
+      "id": "oed",
+      "name": "OED",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "room", "weeks": 4 },
+        { "type": "food", "weeks": 3 }
+      ],
+      "commPlan": [
+        { "type": "announcement", "daysBefore": 14, "time": "18:00" },
+        { "type": "reminderStory", "daysBefore": 1, "time": "12:00" }
+      ]
+    },
+    {
+      "id": "pal",
+      "name": "PAL",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "room", "weeks": 4 }
+      ],
+      "commPlan": [
+        { "type": "announcement", "daysBefore": 14, "time": "18:00" },
+        { "type": "dayStory", "daysBefore": 0, "time": "12:00" }
+      ]
+    },
+    {
+      "id": "education-survey",
+      "name": "Education Survey",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "food", "weeks": 3 },
+        { "type": "material", "weeks": 4 }
+      ],
+      "commPlan": [
+        { "type": "announcement", "daysBefore": 7, "time": "18:00" },
+        { "type": "dayStory", "daysBefore": 0, "time": "12:00" }
+      ]
+    },
+    {
+      "id": "second-hand-booksale",
+      "name": "Second Hand Booksale",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "material", "weeks": 4 },
+        { "type": "room", "weeks": 4 }
+      ],
+      "commPlan": [
+        { "type": "announcement", "daysBefore": 14, "time": "18:00" },
+        { "type": "reminderPost", "daysBefore": 7, "time": "18:00" },
+        { "type": "dayStory", "daysBefore": 0, "time": "12:00" }
+      ]
+    },
+    {
+      "id": "training-24h-run",
+      "name": "Training 24h Run",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "create-wyder-event", "weeks": 1 },
+        { "type": "reminder-message-in-whatsapp-community", "days": 2 }
+      ],
+      "commPlan": []
+    },
+    {
+      "id": "sector-night",
+      "name": "Sector Night",
+      "deadlines": [
+        { "type": "communication", "weeks": 4 },
+        { "type": "room", "weeks": 4 },
+        { "type": "food", "weeks": 3 },
+        { "type": "drinks", "weeks": 3 }
+      ],
+      "commPlan": [
+        { "type": "fbEvent", "daysBefore": 21, "time": "18:00" },
+        { "type": "announcement", "daysBefore": 21, "time": "18:00" },
+        { "type": "reminderPost", "daysBefore": 7, "time": "18:00" }
+      ]
     }
   ]
 }

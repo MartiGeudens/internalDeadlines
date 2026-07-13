@@ -259,7 +259,7 @@
   <div class="card">
     <details class="admin-sec">
       <summary>Deadline types</summary>
-      <p class="muted">Two kinds: <b>weeks/days before event</b> (deadline is calculated from the activity date) and <b>predetermined date</b> (fixed calendar date, e.g. hand in budgets on 1 August — independent of the activity date).</p>
+      <p class="muted">Two kinds: <b>weeks/days before event</b> (deadline is calculated from the activity date) and <b>predetermined date</b> (fixed calendar date, e.g. hand in budgets on 1 August — independent of the activity date). Use <b>{x}</b> in a name for a fill-in placeholder (e.g. "Plan meeting with {x}" → x = ...), filled in per event type or per activity.</p>
       <div class="admin-grid" id="adminDeadlineTypes"></div>
       <button class="secondary" style="margin-top:10px" onclick="adminAddDeadlineType()">+ Add deadline type</button>
     </details>
@@ -402,7 +402,9 @@ const DEFAULT_CONFIG = {
     { name:"Support", headResponsible:"Simon Pauwels" },
     { name:"IT", headResponsible:"Timo Vandevenne" },
     { name:"Fakbar", headResponsible:"" },
-    { name:"Lustrum", headResponsible:"" }
+    { name:"Lustrum", headResponsible:"" },
+    { name:"Skiteam", headResponsible:"" },
+    { name:"Kiescomite", headResponsible:"Tim Ver Elst" }
   ],
   deadlineTypes: [
     { id:"communication", name:"Communication request", defaultWeeks:4 },
@@ -421,7 +423,14 @@ const DEFAULT_CONFIG = {
     { id:"enrollmentForms", name:"Make Enrollment forms (to be submitted in communication request)", defaultWeeks:4 },
     { id:"create-wyder-event", name:"Create Wyder event", defaultWeeks:1 },
     { id:"reminder-message-in-whatsapp-community", name:"Reminder message in Whatsapp community", defaultDays:2 },
-    { id:"finish-budget", name:"Finish budget and send to Q's", fixedDate:"2026-08-01" }
+    { id:"finish-budget", name:"Finish budget and send to Q's", fixedDate:"2026-08-01" },
+    { id:"cash-register-request", name:"Cash register request", defaultWeeks:2 },
+    { id:"request-bank-card", name:"Request bank card", defaultWeeks:2 },
+    { id:"make-activity-on-website", name:"Make activity on website", defaultWeeks:3 },
+    { id:"make-draaiboek", name:"Make draaiboek", defaultWeeks:2 },
+    { id:"make-form-on-website", name:"Make form on website", defaultWeeks:3 },
+    { id:"close-form-on-website", name:"Close form on website", defaultDays:3 },
+    { id:"plan-meeting", name:"Plan meeting with {x}", defaultWeeks:4 }
   ],
   academicYear: { semester1Start:"2026-09-21", semester2Start:"2027-02-08" },
   commChannels: ["Instagram post","Instagram story","Instagram reel","Facebook event","Whatsapp community","Paid meta ads","Website","Linktree","Mailing? (look into mailinglist marti!!!)"],
@@ -447,7 +456,28 @@ const DEFAULT_CONFIG = {
       commPlan:[{type:"announcement",daysBefore:21,time:"18:00"},{type:"regReminder",daysBefore:10,time:"18:00"},{type:"dayStory",daysBefore:0,time:"12:00"}] },
     { id:"social-run-sport", name:"Social Run",
       deadlines:[{type:"communication",weeks:4},{type:"create-wyder-event",weeks:1},{type:"reminder-message-in-whatsapp-community",days:2}],
-      commPlan:[] }
+      commPlan:[] },
+    { id:"peme-activity", name:"PEME-activity",
+      deadlines:[{type:"communication",weeks:4},{type:"material",weeks:4},{type:"room",weeks:4}],
+      commPlan:[{type:"announcement",daysBefore:14,time:"18:00"},{type:"dayStory",daysBefore:0,time:"12:00"}] },
+    { id:"oed", name:"OED",
+      deadlines:[{type:"communication",weeks:4},{type:"room",weeks:4},{type:"food",weeks:3}],
+      commPlan:[{type:"announcement",daysBefore:14,time:"18:00"},{type:"reminderStory",daysBefore:1,time:"12:00"}] },
+    { id:"pal", name:"PAL",
+      deadlines:[{type:"communication",weeks:4},{type:"room",weeks:4}],
+      commPlan:[{type:"announcement",daysBefore:14,time:"18:00"},{type:"dayStory",daysBefore:0,time:"12:00"}] },
+    { id:"education-survey", name:"Education Survey",
+      deadlines:[{type:"communication",weeks:4},{type:"food",weeks:3},{type:"material",weeks:4}],
+      commPlan:[{type:"announcement",daysBefore:7,time:"18:00"},{type:"dayStory",daysBefore:0,time:"12:00"}] },
+    { id:"second-hand-booksale", name:"Second Hand Booksale",
+      deadlines:[{type:"communication",weeks:4},{type:"material",weeks:4},{type:"room",weeks:4}],
+      commPlan:[{type:"announcement",daysBefore:14,time:"18:00"},{type:"reminderPost",daysBefore:7,time:"18:00"},{type:"dayStory",daysBefore:0,time:"12:00"}] },
+    { id:"training-24h-run", name:"Training 24h Run",
+      deadlines:[{type:"communication",weeks:4},{type:"create-wyder-event",weeks:1},{type:"reminder-message-in-whatsapp-community",days:2}],
+      commPlan:[] },
+    { id:"sector-night", name:"Sector Night",
+      deadlines:[{type:"communication",weeks:4},{type:"room",weeks:4},{type:"food",weeks:3},{type:"drinks",weeks:3}],
+      commPlan:[{type:"fbEvent",daysBefore:21,time:"18:00"},{type:"announcement",daysBefore:21,time:"18:00"},{type:"reminderPost",daysBefore:7,time:"18:00"}] }
   ]
 };
 
@@ -593,16 +623,21 @@ function renderTypeSelect(){
 function renderOtherChecklist(){
   const c = document.getElementById('otherChecklist');
   c.innerHTML = config.deadlineTypes.map(d => {
+    const xInput = d.name.includes('{x}')
+      ? `<input type="text" id="x_${d.id}" placeholder="x = …" style="max-width:110px;padding:4px 6px">`
+      : '';
     if (d.fixedDate != null) return `
     <div class="item">
       <input type="checkbox" id="chk_${d.id}">
       <label for="chk_${d.id}" style="margin:0;font-weight:400;flex:1">${esc(d.name)} <span class="muted">(fixed date)</span></label>
+      ${xInput}
       <input type="date" id="fx_${d.id}" value="${d.fixedDate}" style="width:auto;padding:4px 6px">
     </div>`;
     return `
     <div class="item">
       <input type="checkbox" id="chk_${d.id}">
       <label for="chk_${d.id}" style="margin:0;font-weight:400;flex:1">${esc(d.name)}</label>
+      ${xInput}
       <input type="number" id="wk_${d.id}" min="0" value="${d.defaultDays!=null?d.defaultDays:d.defaultWeeks}">
       <select id="unit_${d.id}" style="width:auto;padding:4px 6px">
         <option value="weeks" ${d.defaultDays!=null?'':'selected'}>wk</option>
@@ -638,12 +673,15 @@ function addActivity(){
     typeName = 'Other';
     config.deadlineTypes.forEach(d => {
       if (document.getElementById('chk_'+d.id).checked){
+        const dlName = d.name.includes('{x}')
+          ? d.name.replace('{x}', document.getElementById('x_'+d.id).value.trim() || '…')
+          : d.name;
         if (d.fixedDate != null){
-          dls.push({ name:d.name, fixedDate: document.getElementById('fx_'+d.id).value || d.fixedDate });
+          dls.push({ name:dlName, fixedDate: document.getElementById('fx_'+d.id).value || d.fixedDate });
         } else {
           const n = parseInt(document.getElementById('wk_'+d.id).value)||0;
           const unit = document.getElementById('unit_'+d.id).value;
-          dls.push(unit === 'days' ? { name:d.name, days:n } : { name:d.name, weeks:n });
+          dls.push(unit === 'days' ? { name:dlName, days:n } : { name:dlName, weeks:n });
         }
       }
     });
@@ -654,7 +692,7 @@ function addActivity(){
     typeName = et.name;
     dls = et.deadlines.map(d => {
       const dt = config.deadlineTypes.find(t => t.id === d.type);
-      return { name: dt ? dt.name : d.type, weeks: d.weeks, days: d.days, fixedDate: dt ? dt.fixedDate : undefined };
+      return { name: dt ? dt.name.replace('{x}', d.x || '…') : d.type, weeks: d.weeks, days: d.days, fixedDate: dt ? dt.fixedDate : undefined };
     });
   }
 
@@ -1208,7 +1246,7 @@ function confirmImport(){
       if (mode === 'dl'){
         const dls = et.deadlines.map(d => {
           const dt = config.deadlineTypes.find(t => t.id === d.type);
-          return { name: dt ? dt.name : d.type, weeks: d.weeks, days: d.days, fixedDate: dt ? dt.fixedDate : undefined };
+          return { name: dt ? dt.name.replace('{x}', d.x || '…') : d.type, weeks: d.weeks, days: d.days, fixedDate: dt ? dt.fixedDate : undefined };
         });
         pushDlActivity(r.name, r.resp, et.name, r.date, dls);
       } else {
@@ -1253,7 +1291,7 @@ function applyPending(mode, i){
   if (mode === 'dl'){
     const dls = et.deadlines.map(d => {
       const dt = config.deadlineTypes.find(t => t.id === d.type);
-      return { name: dt ? dt.name : d.type, weeks: d.weeks, days: d.days, fixedDate: dt ? dt.fixedDate : undefined };
+      return { name: dt ? dt.name.replace('{x}', d.x || '…') : d.type, weeks: d.weeks, days: d.days, fixedDate: dt ? dt.fixedDate : undefined };
     });
     pushDlActivity(a.name, a.resp, et.name, a.date, dls);
   } else {
@@ -1538,14 +1576,19 @@ function renderAdmin(){
       <div class="checklist">
         ${config.deadlineTypes.map(d => {
           const dl = e.deadlines.find(x => x.type === d.id);
+          const xInput = d.name.includes('{x}')
+            ? `<input type="text" placeholder="x = …" value="${esc(dl?.x||'')}" ${dl?'':'disabled'} style="max-width:110px;padding:4px 6px" onchange="adminDlX(${i},'${d.id}',this.value)">`
+            : '';
           if (d.fixedDate != null) return `<div class="item">
             <input type="checkbox" ${dl?'checked':''} onchange="adminToggle(${i},'${d.id}',this.checked)">
             <span style="flex:1">${esc(d.name)}</span>
+            ${xInput}
             <span class="muted">fixed: ${d.fixedDate}</span>
           </div>`;
           return `<div class="item">
             <input type="checkbox" ${dl?'checked':''} onchange="adminToggle(${i},'${d.id}',this.checked)">
             <span style="flex:1">${esc(d.name)}</span>
+            ${xInput}
             <input type="number" min="0" value="${dl ? (dl.days!=null?dl.days:dl.weeks) : (d.defaultDays!=null?d.defaultDays:d.defaultWeeks)}" ${dl?'':'disabled'} onchange="adminDlOffset(${i},'${d.id}',this.value)">
             <select style="width:auto;padding:4px 6px" ${dl?'':'disabled'} onchange="adminDlUnit(${i},'${d.id}',this.value)">
               <option value="weeks" ${(dl ? dl.days!=null : d.defaultDays!=null)?'':'selected'}>wk</option>
@@ -1632,6 +1675,10 @@ function adminToggle(ei, tid, on){
   }
   else e.deadlines = e.deadlines.filter(d => d.type !== tid);
   renderAdmin();
+}
+function adminDlX(ei, tid, val){
+  const dl = config.eventTypes[ei].deadlines.find(d => d.type === tid);
+  if (dl) dl.x = val.trim();
 }
 function adminDlOffset(ei, tid, v){
   const dl = config.eventTypes[ei].deadlines.find(d => d.type === tid);
