@@ -26,7 +26,7 @@ A static single-page web app for [Industria](https://industria.be) (student asso
    2. Are all the dates of your activities correct?
    3. Is the event type correct for predefined event types (like BSA, Cantus, IFB, ...)?
 5. Add the (head)responsibles for each deadline of the activity (also possible to do later in Excel).
-6. Click on **Confirm import** — all deadlines should pop up on the website chronologically.
+6. Click on **Confirm import** — all activities land in the **review list** first. For each one, click **Review deadlines** to check, adjust, add or remove its deadline types (or **Add as-is** to accept the predefined ones). Confirmed activities appear chronologically in the year overview.
 7. If not all your activities were in the Excel, you can add them manually:
    1. Add the name of the activity.
    2. Add the main responsible of the event (also possible to do later in Excel).

@@ -124,8 +124,8 @@
   </div>
 
   <div class="card hidden" id="dlPendingCard">
-    <h2>&#9203; Imported without a plan</h2>
-    <p class="muted">These imported activities had an unrecognised event type (e.g. "Other"). Their dates are kept &mdash; assign an event type, or use <i>Set up manually</i> to pick the deadlines yourself.</p>
+    <h2>&#9203; Imported activities &mdash; review deadlines</h2>
+    <p class="muted">Every imported activity passes through here first. <b>Review deadlines</b> loads it into the Add activity form with its event type's deadlines pre-checked, so you can adjust, add or remove deadline types before it enters the year overview. <b>Add as-is</b> accepts the predefined deadlines directly. Activities with an unrecognised event type get an assign-dropdown instead.</p>
     <table><tbody id="dlPendingBody"></tbody></table>
   </div>
 
@@ -516,6 +516,7 @@ let activities = [];   // {id,name,resp,typeName,date,deadlines:[{name,weeks,dat
 let commActivities = []; // same shape; deadlines carry post tasks
 let pendingActs = { dl: [], comm: [] }; // imported activities without a recognised plan
 const adminOpen = {}; // open/closed state of the <details> sections per event type, survives re-renders
+let reviewTypeName = null; // original event type name while reviewing an imported activity in the Add form
 let customDeadlines = []; // for "Other" form (deadline planner)
 let customPosts = [];     // for "Other" form (communication planner)
 let nextId = 1;
@@ -618,7 +619,7 @@ function renderRoleSelect(){
 function renderTypeSelect(){
   const s = document.getElementById('actType');
   s.innerHTML = config.eventTypes.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('') + '<option value="__other">Other…</option>';
-  s.onchange = () => document.getElementById('otherPanel').classList.toggle('hidden', s.value !== '__other');
+  s.onchange = () => { reviewTypeName = null; document.getElementById('otherPanel').classList.toggle('hidden', s.value !== '__other'); };
 }
 function renderOtherChecklist(){
   const c = document.getElementById('otherChecklist');
@@ -670,7 +671,7 @@ function addActivity(){
 
   let dls = [], typeName;
   if (typeId === '__other'){
-    typeName = 'Other';
+    typeName = reviewTypeName || 'Other';
     config.deadlineTypes.forEach(d => {
       if (document.getElementById('chk_'+d.id).checked){
         const dlName = d.name.includes('{x}')
@@ -703,6 +704,7 @@ function addActivity(){
   customDeadlines = [];
   document.getElementById('customDlList').innerHTML = '';
   config.deadlineTypes.forEach(d => { const c = document.getElementById('chk_'+d.id); if (c) c.checked = false; });
+  reviewTypeName = null;
   renderOverview();
 }
 
@@ -1244,11 +1246,9 @@ function confirmImport(){
       const et = config.eventTypes.find(e => e.id === r.typeId);
       if (!et) return;
       if (mode === 'dl'){
-        const dls = et.deadlines.map(d => {
-          const dt = config.deadlineTypes.find(t => t.id === d.type);
-          return { name: dt ? dt.name.replace('{x}', d.x || '…') : d.type, weeks: d.weeks, days: d.days, fixedDate: dt ? dt.fixedDate : undefined };
-        });
-        pushDlActivity(r.name, r.resp, et.name, r.date, dls);
+        // all imported activities first go to the review list, so their deadline
+        // types can be checked / extended / removed before they enter the overview
+        pendingActs.dl.push({ name:r.name, resp:r.resp, date:r.date, typeId:et.id, typeName:et.name });
       } else {
         pushCommActivity(r.name, r.resp, et.name, r.date, resolveCommPlan(et));
       }
@@ -1261,7 +1261,10 @@ function confirmImport(){
   });
   cancelImport();
   renderOverview(); renderCommOverview();
-  alert(`${n} activities imported.` + (p ? ` ${p} moved to "Imported without a plan" — assign their deadlines there.` : ''));
+  if (mode === 'dl')
+    alert(`${n} activities imported into the review list — check the deadlines of each activity there (Review deadlines or Add as-is) before they enter the year overview.` + (p ? ` ${p} had an unrecognised event type; assign one in the same list.` : ''));
+  else
+    alert(`${n} activities imported.` + (p ? ` ${p} moved to "Imported without a plan" — assign their deadlines there.` : ''));
 }
 
 /* ---------- pending activities (imported without recognised plan) ---------- */
@@ -1271,7 +1274,18 @@ function renderPending(mode){
   const list = pendingActs[mode];
   card.classList.toggle('hidden', !list.length);
   const typeOpts = config.eventTypes.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('');
-  body.innerHTML = list.map((a,i) => `<tr>
+  body.innerHTML = list.map((a,i) => {
+    // imported with a recognised event type: review its deadlines (or accept as-is)
+    if (mode === 'dl' && a.typeId) return `<tr>
+    <td><b>${esc(a.name)}</b> <span class="muted">(${esc(a.typeName)})</span></td>
+    <td><input value="${esc(a.resp)}" placeholder="Responsible…" style="max-width:150px;padding:4px 8px" onchange="pendingActs.dl[${i}].resp=this.value.trim(); saveState()"></td>
+    <td>${fmt(a.date)}</td>
+    <td style="white-space:nowrap">
+      <button class="primary" style="padding:4px 12px" onclick="reviewPending(${i})">Review deadlines</button>
+      <button class="secondary" style="padding:4px 10px" onclick="acceptPending(${i})">Add as-is</button>
+      <button class="danger" onclick="pendingActs.dl.splice(${i},1); renderPending('dl'); saveState()">remove</button>
+    </td></tr>`;
+    return `<tr>
     <td><b>${esc(a.name)}</b> <span class="muted">(was: ${esc(a.rawType)||'?'})</span></td>
     <td><input value="${esc(a.resp)}" placeholder="Responsible…" style="max-width:150px;padding:4px 8px" onchange="pendingActs['${mode}'][${i}].resp=this.value.trim(); saveState()"></td>
     <td>${fmt(a.date)}</td>
@@ -1282,7 +1296,47 @@ function renderPending(mode){
       <button class="secondary" style="padding:4px 10px" onclick="applyPending('${mode}',${i})">Apply</button>
       <button class="secondary" style="padding:4px 10px" onclick="manualPending('${mode}',${i})">Set up manually</button>
       <button class="danger" onclick="pendingActs['${mode}'].splice(${i},1); renderPending('${mode}'); saveState()">remove</button>
-    </td></tr>`).join('');
+    </td></tr>`; }).join('');
+}
+/* Load an imported activity into the Add activity form with its event type's
+   deadlines pre-checked in the checklist, so they can be adjusted/added/removed. */
+function reviewPending(i){
+  const a = pendingActs.dl[i];
+  const et = config.eventTypes.find(e => e.id === a.typeId);
+  document.getElementById('actName').value = a.name;
+  document.getElementById('actResp').value = a.resp || '';
+  document.getElementById('actDate').value = isoDate(a.date);
+  document.getElementById('actType').value = '__other';
+  document.getElementById('otherPanel').classList.remove('hidden');
+  renderOtherChecklist(); // fresh, unchecked state
+  (et ? et.deadlines : []).forEach(d => {
+    const dt = config.deadlineTypes.find(t => t.id === d.type);
+    const c = document.getElementById('chk_'+d.type); if (!c) return;
+    c.checked = true;
+    if (!(dt && dt.fixedDate != null) && document.getElementById('wk_'+d.type)){
+      const n = d.days != null ? d.days : d.weeks;
+      if (n != null) document.getElementById('wk_'+d.type).value = n;
+      document.getElementById('unit_'+d.type).value = d.days != null ? 'days' : 'weeks';
+    }
+    const x = document.getElementById('x_'+d.type); if (x && d.x) x.value = d.x;
+  });
+  reviewTypeName = et ? et.name : 'Other'; // keep original event type name on the activity
+  pendingActs.dl.splice(i,1);
+  renderPending('dl'); saveState();
+  document.getElementById('actName').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+/* Accept an imported activity with exactly its event type's predefined deadlines. */
+function acceptPending(i){
+  const a = pendingActs.dl[i];
+  const et = config.eventTypes.find(e => e.id === a.typeId);
+  if (!et) return;
+  const dls = et.deadlines.map(d => {
+    const dt = config.deadlineTypes.find(t => t.id === d.type);
+    return { name: dt ? dt.name.replace('{x}', d.x || '…') : d.type, weeks: d.weeks, days: d.days, fixedDate: dt ? dt.fixedDate : undefined };
+  });
+  pushDlActivity(a.name, a.resp, et.name, a.date, dls);
+  pendingActs.dl.splice(i,1);
+  renderOverview();
 }
 function applyPending(mode, i){
   const a = pendingActs[mode][i];
