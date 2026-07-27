@@ -490,12 +490,18 @@ const DEFAULT_CONFIG = {
     { id:"sector-night", name:"Sector Night",
       deadlines:[],
       commPlan:[] },
-    { id:"standard-activity", name:"Standard activity",
+    { id:"standard-activity-enrollment", name:"Standard activity - enrollment link",
+      deadlines:[], commPlan:[], commOnly:true },
+    { id:"standard-activity-no-enrollment", name:"Standard activity - no enrollment",
       deadlines:[], commPlan:[], commOnly:true },
     { id:"big-activity", name:"Big activity",
       deadlines:[],
       commPlan:[{type:"plan-meeting-post",daysBefore:60,time:"18:00",x:"organising function"}],
-      commOnly:true }
+      commOnly:true },
+    { id:"big-fakparty", name:"Big fakparty",
+      deadlines:[], commPlan:[], commOnly:true },
+    { id:"small-fakparty", name:"Small fakparty",
+      deadlines:[], commPlan:[], commOnly:true }
   ]
 };
 
@@ -524,10 +530,10 @@ function migrateConfig(){
    A {x} placeholder in the post type name is filled from `xOverrides` (per activity)
    or else from the entry's own `x` value (the default set in the Admin tab). */
 function resolveCommPlan(et, xOverrides){
-  return (et.commPlan||[]).map(p => {
+  return (et.commPlan||[]).map((p,i) => {
     const pt = (config.postTypes||[]).find(t => t.id === p.type);
     if (!pt) return null;
-    const x = (xOverrides && xOverrides[p.type]) || p.x || '…';
+    const x = (xOverrides && xOverrides[i]) || p.x || '…';
     return { name:pt.name.replace('{x}', x), channel:pt.channel,
              daysBefore: p.daysBefore != null ? p.daysBefore : pt.defaultDaysBefore,
              time: p.time || pt.defaultTime || '18:00' };
@@ -827,10 +833,12 @@ function renderCommTypeSelect(){
 /* Posts of the selected event type whose name contains {x} (e.g. "Plan meeting with {x}")
    get a fill-in field here, so it can be set per activity instead of only in the config. */
 function commXEntries(et){
-  return (et && et.commPlan || []).filter(p => {
-    const pt = (config.postTypes||[]).find(t => t.id === p.type);
-    return pt && pt.name.includes('{x}');
-  });
+  // index-based: the same post type may appear several times in one plan
+  return (et && et.commPlan || []).map((p,i) => ({ p, i }))
+    .filter(({p}) => {
+      const pt = (config.postTypes||[]).find(t => t.id === p.type);
+      return pt && pt.name.includes('{x}');
+    });
 }
 function renderCommXPanel(){
   const panel = document.getElementById('commXPanel');
@@ -838,12 +846,12 @@ function renderCommXPanel(){
   const et = config.eventTypes.find(e => e.id === document.getElementById('commType').value);
   const entries = commXEntries(et);
   panel.classList.toggle('hidden', !entries.length);
-  panel.innerHTML = entries.map(p => {
+  panel.innerHTML = entries.map(({p,i}) => {
     const pt = config.postTypes.find(t => t.id === p.type);
     // left empty on purpose: blank falls back to the default from the Admin tab
     return `<div style="max-width:320px">
       <label>${esc(pt.name.replace('{x}','…'))} &mdash; with whom?</label>
-      <input type="text" id="commx_${p.type}" placeholder="${esc(p.x || 'e.g. Sport')}">
+      <input type="text" id="commx_${i}" placeholder="${esc(p.x || 'e.g. Sport')}">
     </div>`;
   }).join('');
 }
@@ -931,9 +939,9 @@ function addCommActivity(){
     typeName = et.name;
     // {x} values filled in for this activity (e.g. who the meeting is with)
     const xOverrides = {};
-    commXEntries(et).forEach(p => {
-      const inp = document.getElementById('commx_'+p.type);
-      if (inp && inp.value.trim()) xOverrides[p.type] = inp.value.trim();
+    commXEntries(et).forEach(({i}) => {
+      const inp = document.getElementById('commx_'+i);
+      if (inp && inp.value.trim()) xOverrides[i] = inp.value.trim();
     });
     plan = resolveCommPlan(et, xOverrides);
     if (!plan.length) return alert(`No communication plan defined for ${et.name} yet — add one via the Admin tab.`);
@@ -1788,21 +1796,27 @@ function renderAdmin(){
       </details>
       <details ${adminOpen[e.id+':comm']?'open':''} ontoggle="adminOpen['${e.id}:comm']=this.open">
         <summary>Communication plan (days before event; negative = after)</summary>
-        <div class="checklist">
-          ${(config.postTypes||[]).map(pt => {
-            const p = (e.commPlan||[]).find(x => x.type === pt.id);
-            const days = p ? (p.daysBefore != null ? p.daysBefore : pt.defaultDaysBefore) : pt.defaultDaysBefore;
-            const time = p ? (p.time || pt.defaultTime) : pt.defaultTime;
+        <div class="admin-grid">
+          ${(e.commPlan||[]).map((p,pi) => {
+            const pt = (config.postTypes||[]).find(t => t.id === p.type);
+            if (!pt) return '';
             const xInput = pt.name.includes('{x}')
-              ? `<input type="text" placeholder="x = …" value="${esc(p?.x||'')}" ${p?'':'disabled'} style="max-width:110px;padding:4px 6px" onchange="adminPostSet(${i},'${pt.id}','x',this.value.trim())">`
+              ? `<input type="text" placeholder="x = …" value="${esc(p.x||'')}" style="max-width:120px" onchange="adminPostSet(${i},${pi},'x',this.value.trim())">`
               : '';
-            return `<div class="item">
-              <input type="checkbox" ${p?'checked':''} onchange="adminPostToggle(${i},'${pt.id}',this.checked)">
-              <span style="flex:1">${esc(pt.name)} <span class="muted">(${esc(pt.channel)})</span></span>
+            return `<div class="admin-row">
+              <span style="flex:2">${esc(pt.name)} <span class="muted">(${esc(pt.channel)})</span></span>
               ${xInput}
-              <input type="number" value="${days}" ${p?'':'disabled'} onchange="adminPostSet(${i},'${pt.id}','daysBefore',parseInt(this.value)||0)"> <span class="muted">d</span>
-              <input type="time" value="${time||'18:00'}" ${p?'':'disabled'} style="width:auto;padding:3px 6px" onchange="adminPostSet(${i},'${pt.id}','time',this.value)">
+              <input type="number" value="${p.daysBefore != null ? p.daysBefore : pt.defaultDaysBefore}" title="negative = after the event" onchange="adminPostSet(${i},${pi},'daysBefore',parseInt(this.value)||0)"> <span class="muted">d</span>
+              <input type="time" value="${p.time || pt.defaultTime || '18:00'}" style="width:auto" onchange="adminPostSet(${i},${pi},'time',this.value)">
+              <button class="danger" onclick="adminPostRemove(${i},${pi})">remove</button>
             </div>`; }).join('')}
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+          <select id="addPost_${e.id}" style="width:auto;padding:6px 8px">
+            ${(config.postTypes||[]).map(pt => `<option value="${pt.id}">${esc(pt.name)} — ${esc(pt.channel)}</option>`).join('')}
+          </select>
+          <button class="secondary" style="padding:6px 14px" onclick="adminPostAdd(${i},'${e.id}')">+ Add post</button>
+          <span class="muted">The same post type may be added several times (e.g. reminder stories at 10, 7 and 3 days).</span>
         </div>
       </details>
     </div>`).join('');
@@ -1869,18 +1883,36 @@ function adminSetCommOnly(ei, on){
   if (on) config.eventTypes[ei].commOnly = true; else delete config.eventTypes[ei].commOnly;
   renderAdmin(); renderTypeSelect();
 }
-function adminPostToggle(ei, ptId, on){
+/* A commPlan is an ordered LIST: the same post type may appear several times with
+   different offsets (e.g. reminder stories at 10, 7 and 3 days), so entries are
+   addressed by their index, not by post type id. */
+function adminPostAdd(ei, etId){
   const e = config.eventTypes[ei];
+  const ptId = document.getElementById('addPost_'+etId).value;
+  const pt = config.postTypes.find(t => t.id === ptId);
+  if (!pt) return;
   if (!e.commPlan) e.commPlan = [];
-  if (on){
-    const pt = config.postTypes.find(t => t.id === ptId);
-    e.commPlan.push({ type:ptId, daysBefore:pt.defaultDaysBefore, time:pt.defaultTime });
-  } else e.commPlan = e.commPlan.filter(p => p.type !== ptId);
+  e.commPlan.push({ type:ptId, daysBefore:pt.defaultDaysBefore, time:pt.defaultTime });
+  e.commPlan.sort((a,b) => (b.daysBefore||0) - (a.daysBefore||0)); // earliest post first
+  adminOpen[e.id+':comm'] = true;
   renderAdmin();
 }
-function adminPostSet(ei, ptId, field, val){
-  const p = config.eventTypes[ei].commPlan.find(x => x.type === ptId);
-  if (p) p[field] = val;
+function adminPostRemove(ei, pi){
+  const e = config.eventTypes[ei];
+  e.commPlan.splice(pi,1);
+  adminOpen[e.id+':comm'] = true;
+  renderAdmin();
+}
+function adminPostSet(ei, pi, field, val){
+  const e = config.eventTypes[ei];
+  const p = e.commPlan[pi];
+  if (!p) return;
+  p[field] = val;
+  if (field === 'daysBefore'){
+    e.commPlan.sort((a,b) => (b.daysBefore||0) - (a.daysBefore||0));
+    adminOpen[e.id+':comm'] = true;
+    renderAdmin();
+  }
 }
 function adminToggle(ei, tid, on){
   const e = config.eventTypes[ei];

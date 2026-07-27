@@ -572,8 +572,15 @@
       "commPlan": []
     },
     {
-      "id": "standard-activity",
-      "name": "Standard activity",
+      "id": "standard-activity-enrollment",
+      "name": "Standard activity - enrollment link",
+      "deadlines": [],
+      "commPlan": [],
+      "commOnly": true
+    },
+    {
+      "id": "standard-activity-no-enrollment",
+      "name": "Standard activity - no enrollment",
       "deadlines": [],
       "commPlan": [],
       "commOnly": true
@@ -590,6 +597,20 @@
           "x": "organising function"
         }
       ],
+      "commOnly": true
+    },
+    {
+      "id": "big-fakparty",
+      "name": "Big fakparty",
+      "deadlines": [],
+      "commPlan": [],
+      "commOnly": true
+    },
+    {
+      "id": "small-fakparty",
+      "name": "Small fakparty",
+      "deadlines": [],
+      "commPlan": [],
       "commOnly": true
     }
   ]
