@@ -22,7 +22,17 @@
     },
     {
       "name": "Kursusdienst",
-      "headResponsible": "Marcel Mugisha"
+      "headResponsible": "Marcel Mugisha",
+      "weeklyTasks": [
+        {
+          "name": "Update opening hours",
+          "day": 0
+        },
+        {
+          "name": "Post KD shifts next week",
+          "day": 4
+        }
+      ]
     },
     {
       "name": "Events",

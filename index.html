@@ -123,6 +123,22 @@
     <div style="margin-top:16px"><button class="primary" onclick="addActivity()">Add activity</button></div>
   </div>
 
+  <div class="card hidden" id="weeklyTaskCard">
+    <h2>&#128260; Weekly tasks for your function</h2>
+    <p class="muted" id="weeklyTaskList"></p>
+    <div class="row" style="align-items:flex-end">
+      <div style="max-width:150px"><label>From</label><input type="date" id="wtFrom"></div>
+      <div style="max-width:150px"><label>Until</label><input type="date" id="wtUntil"></div>
+      <div style="max-width:190px"><button class="primary" onclick="addWeeklyTasks()">Add weekly tasks</button></div>
+    </div>
+    <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+      <span class="muted">Quick period:</span>
+      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWtPeriod('s1')">Semester 1</button>
+      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWtPeriod('s2')">Semester 2</button>
+      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWtPeriod('year')">Whole year</button>
+    </div>
+  </div>
+
   <div class="card hidden" id="dlPendingCard">
     <h2>&#9203; Imported activities &mdash; review deadlines</h2>
     <p class="muted">Every imported activity passes through here first. <b>Review deadlines</b> loads it into the Add activity form with its event type's deadlines pre-checked, so you can adjust, add or remove deadline types before it enters the year overview. <b>Add as-is</b> accepts the predefined deadlines directly. Activities with an unrecognised event type get an assign-dropdown instead.</p>
@@ -282,7 +298,7 @@
   <div class="card">
     <details class="admin-sec">
       <summary>Roles (praesidium functions)</summary>
-      <p class="muted">Functions shown in step 1 of the deadline planner and used to filter the year-plan import (role column). The optional <b>head responsible</b> is the person currently leading that function; it is written to a fixed cell (B1) in the deadline Excel export. Renaming a role here does not update the role names in existing import files.</p>
+      <p class="muted">Functions shown in step 1 of the deadline planner and used to filter the year-plan import (role column). The optional <b>head responsible</b> is the person currently leading that function; it is written to a fixed cell (B1) in the deadline Excel export. <b>Weekly tasks</b> are recurring jobs for that function (e.g. count the cash every Monday); members generate them for a whole semester in the planner. Renaming a role here does not update the role names in existing import files.</p>
       <div class="admin-grid" id="adminRoles"></div>
       <button class="secondary" style="margin-top:10px" onclick="adminAddRole()">+ Add role</button>
     </details>
@@ -391,7 +407,10 @@ const DEFAULT_CONFIG = {
     { name:"Quaestor", headResponsible:"Marti Geudens" },
     { name:"Bedrijvenrelaties", headResponsible:"Victor Vaes" },
     { name:"Onderwijs", headResponsible:"Lucie Meeus" },
-    { name:"Kursusdienst", headResponsible:"Marcel Mugisha" },
+    { name:"Kursusdienst", headResponsible:"Marcel Mugisha", weeklyTasks:[
+      { name:"Update opening hours", day:0 },
+      { name:"Post KD shifts next week", day:4 }
+    ] },
     { name:"Events", headResponsible:"Simon Ghijsbrecht" },
     { name:"Sport", headResponsible:"Robbe Coeckelbergs" },
     { name:"Ontspanning", headResponsible:"Jolan Vreysen" },
@@ -489,8 +508,10 @@ const DEFAULT_CONFIG = {
 /* Migrate configs with old-style inline commPlan entries ({name,channel,daysBefore,time})
    to the postTypes-based format ({type,daysBefore,time}). */
 function migrateConfig(){
-  // old format: roles as array of strings -> array of { name, headResponsible }
-  config.roles = (config.roles||[]).map(r => typeof r === 'string' ? { name:r, headResponsible:'' } : { headResponsible:'', ...r });
+  // old format: roles as array of strings -> array of { name, headResponsible, weeklyTasks }
+  config.roles = (config.roles||[]).map(r => typeof r === 'string'
+    ? { name:r, headResponsible:'', weeklyTasks:[] }
+    : { headResponsible:'', weeklyTasks:[], ...r });
   if (!config.postTypes) config.postTypes = [];
   (config.eventTypes||[]).forEach(e => {
     e.commPlan = (e.commPlan||[]).map(p => {
@@ -542,7 +563,7 @@ setInterval(updateCfgDirty, 1000);
 window.addEventListener('beforeunload', e => { if (configDirty()){ e.preventDefault(); e.returnValue = ''; } });
 
 function renderAll(){
-  renderRoleSelect(); renderTypeSelect(); renderOtherChecklist(); renderAdmin(); renderOverview();
+  renderRoleSelect(); renderTypeSelect(); renderOtherChecklist(); renderAdmin(); renderWeeklyTaskCard(); renderOverview();
   renderCommTypeSelect(); renderChannelList(); renderCommOtherChecklist(); setWeeklyDefaults(); renderCommOverview();
   try {
     const gh = JSON.parse(localStorage.getItem('ghRepoInfo'));
@@ -619,13 +640,75 @@ function renderRoleSelect(){
   s.innerHTML = config.roles.map(r => `<option>${esc(r.name)}</option>`).join('');
   const saved = localStorage.getItem('industriaRole');
   if (saved && config.roles.some(r => r.name === saved)) s.value = saved;
-  s.onchange = () => localStorage.setItem('industriaRole', s.value);
+  s.onchange = () => { localStorage.setItem('industriaRole', s.value); renderWeeklyTaskCard(); };
 }
 function renderTypeSelect(){
   const s = document.getElementById('actType');
   s.innerHTML = config.eventTypes.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('') + '<option value="__other">Other…</option>';
   s.onchange = () => { reviewTypeName = null; document.getElementById('otherPanel').classList.toggle('hidden', s.value !== '__other'); };
 }
+/* ---------- weekly tasks per function (config.roles[].weeklyTasks) ---------- */
+function currentRole(){
+  const v = document.getElementById('roleSelect').value;
+  return (config.roles||[]).find(r => r.name === v);
+}
+function renderWeeklyTaskCard(){
+  const card = document.getElementById('weeklyTaskCard');
+  if (!card) return;
+  const role = currentRole();
+  const tasks = (role && role.weeklyTasks) || [];
+  card.classList.toggle('hidden', !tasks.length);
+  if (!tasks.length) return;
+  document.getElementById('weeklyTaskList').innerHTML =
+    `Recurring tasks for <b>${esc(role.name)}</b>: ` +
+    tasks.map(t => `<span class="tag">${esc(t.name)} — ${DAY_NAMES[t.day]}</span>`).join(' ') +
+    ` Responsible: ${esc(role.headResponsible || '—')}. All occurrences are grouped under one activity "Weekly tasks" in the year overview.`;
+  const f = document.getElementById('wtFrom');
+  if (f && !f.value) setWtPeriod('s1');
+}
+function setWtPeriod(preset){
+  const ay = config.academicYear || {};
+  const s1 = ay.semester1Start || '2026-09-21', s2 = ay.semester2Start || '2027-02-08';
+  const plus13w = s => { const e = new Date(s + 'T12:00:00'); e.setDate(e.getDate() + 13*7 - 1); return isoDate(e); };
+  const p = { s1:[s1, plus13w(s1)], s2:[s2, plus13w(s2)], year:[s1, plus13w(s2)] }[preset];
+  document.getElementById('wtFrom').value = p[0];
+  document.getElementById('wtUntil').value = p[1];
+}
+function addWeeklyTasks(){
+  const role = currentRole();
+  const tasks = (role && role.weeklyTasks) || [];
+  if (!tasks.length) return alert('No weekly tasks defined for this function (add them in the Admin tab).');
+  const from = document.getElementById('wtFrom').value, until = document.getElementById('wtUntil').value;
+  if (!from || !until) return alert('Fill in the From and Until dates of the period.');
+  const start = new Date(from + 'T12:00:00'), end = new Date(until + 'T12:00:00');
+  if (isNaN(start) || isNaN(end) || start > end) return alert('Invalid period: "From" must be before "Until".');
+  const resp = role.headResponsible || ''; // always the function's head responsible
+  // all occurrences are grouped under ONE "Weekly tasks" activity, so the Excel export
+  // keeps one header row instead of hundreds of separate activities
+  const rows = [];
+  tasks.forEach(t => {
+    const d = new Date(start);
+    while (d.getDay() !== t.day) d.setDate(d.getDate() + 1);
+    while (d <= end){
+      rows.push({ name:t.name, days:0, date:new Date(d), status:'To Do', resp, weekly:true });
+      d.setDate(d.getDate() + 7);
+    }
+  });
+  if (!rows.length) return alert('The chosen weekday(s) do not occur in the selected period.');
+  let act = activities.find(a => a.weeklyTask);
+  if (act){ // adding another period: merge into the existing activity
+    act.deadlines = act.deadlines.concat(rows).sort((a,b) => a.date - b.date);
+    act.resp = resp; act.date = act.deadlines[0].date;
+  } else {
+    rows.sort((a,b) => a.date - b.date);
+    activities.push({ id:nextId++, name:'Weekly tasks', resp, typeName:role.name, date:rows[0].date,
+      weeklyTask:true, deadlines:rows });
+  }
+  activities.sort((a,b) => a.date - b.date);
+  renderOverview();
+  alert(`${rows.length} weekly tasks added under "Weekly tasks" for ${role.name}.`);
+}
+
 function renderOtherChecklist(){
   const c = document.getElementById('otherChecklist');
   c.innerHTML = config.deadlineTypes.map(d => {
@@ -652,6 +735,7 @@ function renderOtherChecklist(){
     </div>`; }).join('');
 }
 function dlOffsetLabel(d){
+  if (d.weekly) return weekLabel(d.date).short; // weekly task: show the semester week
   if (d.fixedDate) return 'fixed date';
   const n = d.days != null ? d.days : d.weeks;
   const unit = d.days != null ? 'd' : 'wk';
@@ -1605,10 +1689,27 @@ function renderAdmin(){
     </div>`; }).join('');
 
   document.getElementById('adminRoles').innerHTML = (config.roles||[]).map((r,i) => `
-    <div class="admin-row">
-      <input type="text" value="${esc(r.name)}" style="flex:1" onchange="adminSetRole(${i},this.value)">
-      <input type="text" value="${esc(r.headResponsible||'')}" placeholder="Head responsible (optional)" style="flex:1" onchange="adminSetRoleHead(${i},this.value)">
-      <button class="danger" onclick="config.roles.splice(${i},1); renderAdmin(); renderRoleSelect()">remove</button>
+    <div class="et-block">
+      <div class="admin-row">
+        <input type="text" value="${esc(r.name)}" style="flex:1" onchange="adminSetRole(${i},this.value)">
+        <input type="text" value="${esc(r.headResponsible||'')}" placeholder="Head responsible (optional)" style="flex:1" onchange="adminSetRoleHead(${i},this.value)">
+        <button class="danger" onclick="config.roles.splice(${i},1); renderAdmin(); renderRoleSelect()">remove</button>
+      </div>
+      <details ${adminOpen['role'+i]?'open':''} ontoggle="adminOpen['role${i}']=this.open">
+        <summary>Weekly tasks (${(r.weeklyTasks||[]).length})</summary>
+        <div class="admin-grid">
+          ${(r.weeklyTasks||[]).map((t,ti) => `
+          <div class="admin-row">
+            <input type="text" value="${esc(t.name)}" style="flex:2" onchange="adminWtSet(${i},${ti},'name',this.value)">
+            <select style="width:auto;padding:4px 6px" onchange="adminWtSet(${i},${ti},'day',parseInt(this.value))">
+              ${DAY_NAMES.map((d,di) => `<option value="${di}" ${t.day===di?'selected':''}>${d}</option>`).join('')}
+            </select>
+            <span class="muted" style="flex:1">responsible: ${esc(r.headResponsible || '—')}</span>
+            <button class="danger" onclick="adminWtRemove(${i},${ti})">remove</button>
+          </div>`).join('')}
+        </div>
+        <button class="secondary" style="margin-top:6px" onclick="adminWtAdd(${i})">+ Add weekly task</button>
+      </details>
     </div>`).join('');
 
   document.getElementById('adminChannels').innerHTML = (config.commChannels||[]).map((c,i) => `
@@ -1681,6 +1782,23 @@ function adminSetRole(i, val){
   renderRoleSelect();
 }
 function adminSetRoleHead(i, val){ config.roles[i].headResponsible = val.trim(); }
+function adminWtSet(ri, ti, field, val){
+  config.roles[ri].weeklyTasks[ti][field] = typeof val === 'string' ? val.trim() : val;
+  if (field === 'name') renderAdmin();
+  renderWeeklyTaskCard();
+}
+function adminWtAdd(ri){
+  const r = config.roles[ri];
+  if (!r.weeklyTasks) r.weeklyTasks = [];
+  r.weeklyTasks.push({ name:'New weekly task', day:1 });
+  adminOpen['role'+ri] = true;
+  renderAdmin(); renderWeeklyTaskCard();
+}
+function adminWtRemove(ri, ti){
+  config.roles[ri].weeklyTasks.splice(ti,1);
+  adminOpen['role'+ri] = true;
+  renderAdmin(); renderWeeklyTaskCard();
+}
 function adminAddRole(){
   const name = prompt('Name of the new role:'); if (!name || !name.trim()) return;
   if (!config.roles) config.roles = [];
