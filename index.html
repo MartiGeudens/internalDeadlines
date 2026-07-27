@@ -615,21 +615,9 @@ function renderWeeklyTaskCard(){
   const f = document.getElementById('wtFrom');
   if (f && !f.value) setWtPeriod('s1');
 }
-let wtPeriods = null; // array of [from, until] when a multi-range preset is active
+let wtPeriods = null; // ranges of the active preset in the deadline planner
 function setWtPeriod(preset){
-  const r = semesterRanges();
-  const note = document.getElementById('wtPeriodNote');
-  if (preset === 'both'){
-    wtPeriods = [r.s1, r.s2];
-    document.getElementById('wtFrom').value = r.s1[0];
-    document.getElementById('wtUntil').value = r.s2[1];
-    if (note) note.textContent = '(both semesters, nothing between them)';
-  } else {
-    wtPeriods = null;
-    document.getElementById('wtFrom').value = r[preset][0];
-    document.getElementById('wtUntil').value = r[preset][1];
-    if (note) note.textContent = '';
-  }
+  wtPeriods = applyPeriodPreset(preset, 'wtFrom', 'wtUntil', 'wtPeriodNote');
 }
 function addWeeklyTasks(){
   const role = currentRole();
@@ -638,19 +626,14 @@ function addWeeklyTasks(){
   const from = document.getElementById('wtFrom').value, until = document.getElementById('wtUntil').value;
   if (!from || !until) return alert('Fill in the From and Until dates of the period.');
   if (new Date(from) > new Date(until)) return alert('Invalid period: "From" must be before "Until".');
-  const ranges = (wtPeriods || [[from, until]]).map(([a,b]) => [new Date(a+'T12:00:00'), new Date(b+'T12:00:00')]);
+  const ranges = periodRanges(wtPeriods, from, until);
   const resp = role.headResponsible || ''; // always the function's head responsible
   // all occurrences are grouped under ONE "Weekly tasks" activity, so the Excel export
   // keeps one header row instead of hundreds of separate activities
   const rows = [];
   tasks.forEach(t => {
-    ranges.forEach(([start, end]) => {
-      const d = new Date(start);
-      while (d.getDay() !== t.day) d.setDate(d.getDate() + 1);
-      while (d <= end){
-        rows.push({ name:t.name, days:0, date:new Date(d), status:'To Do', resp, weekly:true });
-        d.setDate(d.getDate() + 7);
-      }
+    weeklyDates(ranges, t.day).forEach(date => {
+      rows.push({ name:t.name, days:0, date, status:'To Do', resp, weekly:true });
     });
   });
   if (!rows.length) return alert('The chosen weekday(s) do not occur in the selected period.');
@@ -717,7 +700,7 @@ function addActivity(){
   const typeId = document.getElementById('actType').value;
   const dateStr = document.getElementById('actDate').value;
   if (!name || !dateStr) return alert('Fill in at least an activity name and a date.');
-  const eventDate = new Date(dateStr + 'T12:00:00');
+  const eventDate = atNoon(dateStr);
 
   let dls = [], typeName;
   if (typeId === '__other'){
@@ -762,7 +745,7 @@ function pushDlActivity(name, resp, typeName, eventDate, dls){
   const deadlines = dls.map(d => {
     let dd;
     if (d.fixedDate){ // predetermined calendar date, independent of the event date
-      dd = new Date(d.fixedDate + 'T12:00:00');
+      dd = atNoon(d.fixedDate);
     } else {
       const offDays = d.days != null ? d.days : (d.weeks||0)*7;
       dd = new Date(eventDate); dd.setDate(dd.getDate() - offDays);
@@ -790,7 +773,8 @@ function setCommActResp(aid, val){
 }
 
 function fmt(d){ return d.toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }); }
-function warnings(d){
+/* Deliberately no weekend warning (decision Marti): only flag deadlines already in the past. */
+function pastDateWarning(d){
   return d < new Date() ? ' <span class="warn">&#9888; in the past!</span>' : '';
 }
 
@@ -806,7 +790,7 @@ function renderOverview(){
       <td></td>
       <td><button class="danger" onclick="removeActivity(${a.id})">remove</button></td></tr>`;
     html += a.deadlines.map((d,i) => `<tr>
-      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${dlOffsetLabel(d)})</span>${warnings(d.date)}</td>
+      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${dlOffsetLabel(d)})</span>${pastDateWarning(d.date)}</td>
       <td><input value="${esc(d.resp)}" style="max-width:150px;padding:4px 8px" onchange="setDlResp(${a.id},${i},this.value)"></td>
       <td>${fmt(d.date)}</td>
       <td><select class="status-select status-${d.status.replace(' ','')}" onchange="setStatus(${a.id},${i},this.value)">
@@ -847,23 +831,37 @@ function addCustomPost(){
   if (!n) return alert('Give the post a name.');
   customPosts.push({ name:n, channel:ch, daysBefore:d, time:t });
   document.getElementById('commPostName').value = '';
-  document.getElementById('commPostList').innerHTML = customPosts.map(p => `<span class="tag">${esc(p.name)} — ${esc(p.channel)} (${offsetLabel(p.daysBefore)}, ${p.time})</span>`).join('');
+  document.getElementById('commPostList').innerHTML = customPosts.map(p => `<span class="tag">${esc(p.name)} — ${esc(p.channel)} (${postOffsetLabel(p.daysBefore)}, ${p.time})</span>`).join('');
 }
-function offsetLabel(d){ return d > 0 ? `${d} d before` : d < 0 ? `${-d} d after` : 'day of event'; }
+/* Label for a communication post offset (in days); see dlOffsetLabel for internal deadlines. */
+function postOffsetLabel(d){ return d > 0 ? `${d} d before` : d < 0 ? `${-d} d after` : 'day of event'; }
 const pad2 = n => String(n).padStart(2,'0');
-/* If posts of two DIFFERENT activities land on the same day at the same time,
-   shift the new one +1h until the slot is free, and mark it.
-   Posts within the same activity may share a moment (e.g. Insta + Facebook together). */
+const DEFAULT_POST_TIME = '18:00';
+/* --- post time slots ---
+   Posts of two DIFFERENT activities may not share a day+hour: the later one shifts +1h
+   until the slot is free and is marked. Posts within the same activity may coincide
+   (e.g. Insta + Facebook together). */
+const slotKey = (date, time) => date.toDateString() + ' ' + time;
+/* All occupied day+hour slots, optionally ignoring one activity's own posts. */
+function occupiedSlots(exceptActivityId){
+  const occupied = new Set();
+  commActivities.forEach(a => {
+    if (a.id === exceptActivityId) return;
+    a.deadlines.forEach(d => occupied.add(slotKey(d.date, d.time)));
+  });
+  return occupied;
+}
+/* Move a post +1h until its slot is free (max 23:00); sets d.time and d.shifted. */
+function shiftUntilFree(d, occupied){
+  let [h,m] = (d.time || DEFAULT_POST_TIME).split(':').map(Number);
+  d.shifted = false;
+  while (occupied.has(slotKey(d.date, pad2(h)+':'+pad2(m))) && h < 23){ h++; d.shifted = true; }
+  d.time = pad2(h)+':'+pad2(m);
+}
 function assignCommTimes(deadlines){
   // all `deadlines` belong to one new activity, so only slots of existing activities conflict
-  const occupied = new Set();
-  commActivities.forEach(a => a.deadlines.forEach(d => occupied.add(d.date.toDateString()+' '+d.time)));
-  deadlines.forEach(d => {
-    let [h,m] = (d.time || '18:00').split(':').map(Number);
-    d.shifted = false;
-    while (occupied.has(d.date.toDateString()+' '+pad2(h)+':'+pad2(m)) && h < 23){ h++; d.shifted = true; }
-    d.time = pad2(h)+':'+pad2(m);
-  });
+  const occupied = occupiedSlots();
+  deadlines.forEach(d => shiftUntilFree(d, occupied));
 }
 
 function addCommActivity(){
@@ -872,7 +870,7 @@ function addCommActivity(){
   const typeId = document.getElementById('commType').value;
   const dateStr = document.getElementById('commDate').value;
   if (!name || !dateStr) return alert('Fill in at least an activity name and a date.');
-  const eventDate = new Date(dateStr + 'T12:00:00');
+  const eventDate = atNoon(dateStr);
 
   let plan, typeName;
   if (typeId === '__other'){
@@ -934,23 +932,18 @@ function addWeeklyPosts(){
   const until = document.getElementById('weeklyUntil').value;
   if (!from || !until) return alert('Fill in the From and Until dates of the period.');
   if (new Date(from) > new Date(until)) return alert('Invalid period: "From" must be before "Until".');
-  const ranges = (weeklyPeriods || [[from, until]]).map(([a,b]) => [new Date(a+'T12:00:00'), new Date(b+'T12:00:00')]);
+  const ranges = periodRanges(weeklyPeriods, from, until);
   // nothing added yet? use the current input fields as a single item, so the quick flow keeps working
   const items = weeklyItems.length ? weeklyItems : [{
     name: document.getElementById('weeklyName').value.trim() || 'Weekly overview',
     ch: document.getElementById('weeklyChannel').value.trim() || 'Instagram post',
     day: parseInt(document.getElementById('weeklyDay').value),
-    time: document.getElementById('weeklyTime').value || '18:00'
+    time: document.getElementById('weeklyTime').value || DEFAULT_POST_TIME
   }];
   const deadlines = [];
   items.forEach(it => {
-    ranges.forEach(([start, end]) => {
-      const d = new Date(start);
-      while (d.getDay() !== it.day) d.setDate(d.getDate() + 1); // first occurrence of the chosen weekday
-      while (d <= end){
-        deadlines.push({ name:`${it.name} — ${it.ch}`, date:new Date(d), time:it.time, status:'To Do', resp, recurring:true });
-        d.setDate(d.getDate() + 7);
-      }
+    weeklyDates(ranges, it.day).forEach(date => {
+      deadlines.push({ name:`${it.name} — ${it.ch}`, date, time:it.time, status:'To Do', resp, recurring:true });
     });
   });
   if (!deadlines.length) return alert('The chosen weekday(s) do not occur in the selected period.');
@@ -964,30 +957,45 @@ function addWeeklyPosts(){
   renderCommOverview();
 }
 const isoDate = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-/* semester = 13 weeks from its start date (config.academicYear) */
+/* Dates are anchored at noon so DST shifts can never move them to the previous/next day. */
+const atNoon = iso => new Date(iso + 'T12:00:00');
+const SEMESTER_WEEKS = 13; // a semester runs 13 weeks from its start date (config.academicYear)
 function semesterRanges(){
   const ay = config.academicYear || {};
   const s1 = ay.semester1Start || '2026-09-21', s2 = ay.semester2Start || '2027-02-08';
-  const plus13w = s => { const e = new Date(s + 'T12:00:00'); e.setDate(e.getDate() + 13*7 - 1); return isoDate(e); };
-  return { s1:[s1, plus13w(s1)], s2:[s2, plus13w(s2)] };
+  const semEnd = s => { const e = atNoon(s); e.setDate(e.getDate() + SEMESTER_WEEKS*7 - 1); return isoDate(e); };
+  return { s1:[s1, semEnd(s1)], s2:[s2, semEnd(s2)] };
 }
-/* "Semester 1 & 2" = both semesters as TWO separate ranges, so nothing is generated
-   in the exam/holiday period between them (unlike one continuous range). */
-let weeklyPeriods = null; // array of [from, until] when a multi-range preset is active
-function setWeeklyPeriod(preset){
+/* Fill in the From/Until fields for a preset. Returns the ranges to generate over:
+   null = one plain range (the fields), or a list of ranges for "Semester 1 & 2" — that one
+   keeps both semesters separate so nothing lands in the exam period between them. */
+function applyPeriodPreset(preset, fromId, untilId, noteId){
   const r = semesterRanges();
-  const note = document.getElementById('weeklyPeriodNote');
-  if (preset === 'both'){
-    weeklyPeriods = [r.s1, r.s2];
-    document.getElementById('weeklyFrom').value = r.s1[0];
-    document.getElementById('weeklyUntil').value = r.s2[1];
-    if (note) note.textContent = '(both semesters, nothing between them)';
-  } else {
-    weeklyPeriods = null;
-    document.getElementById('weeklyFrom').value = r[preset][0];
-    document.getElementById('weeklyUntil').value = r[preset][1];
-    if (note) note.textContent = '';
-  }
+  const both = preset === 'both';
+  const [from, until] = both ? [r.s1[0], r.s2[1]] : r[preset];
+  document.getElementById(fromId).value = from;
+  document.getElementById(untilId).value = until;
+  const note = document.getElementById(noteId);
+  if (note) note.textContent = both ? '(both semesters, nothing between them)' : '';
+  return both ? [r.s1, r.s2] : null;
+}
+/* Ranges to generate over: the multi-range preset if active, otherwise the two date fields. */
+function periodRanges(presetRanges, from, until){
+  return (presetRanges || [[from, until]]).map(([a,b]) => [atNoon(a), atNoon(b)]);
+}
+/* Every date within `ranges` that falls on weekday `day` (0=Sunday .. 6=Saturday). */
+function weeklyDates(ranges, day){
+  const out = [];
+  ranges.forEach(([start, end]) => {
+    const d = new Date(start);
+    while (d.getDay() !== day) d.setDate(d.getDate() + 1); // first occurrence of the weekday
+    while (d <= end){ out.push(new Date(d)); d.setDate(d.getDate() + 7); }
+  });
+  return out;
+}
+let weeklyPeriods = null; // ranges of the active preset in the communication planner
+function setWeeklyPeriod(preset){
+  weeklyPeriods = applyPeriodPreset(preset, 'weeklyFrom', 'weeklyUntil', 'weeklyPeriodNote');
 }
 function setWeeklyDefaults(){
   const f = document.getElementById('weeklyFrom');
@@ -1004,8 +1012,8 @@ function mondayOf(d){
 }
 function weekLabel(date){
   const ay = config.academicYear || {};
-  const s1 = mondayOf(new Date((ay.semester1Start||'2026-09-21') + 'T12:00:00'));
-  const s2 = mondayOf(new Date((ay.semester2Start||'2027-02-08') + 'T12:00:00'));
+  const s1 = mondayOf(atNoon(ay.semester1Start || '2026-09-21'));
+  const s2 = mondayOf(atNoon(ay.semester2Start || '2027-02-08'));
   const wStart = mondayOf(date);
   const wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate()+6);
   const range = `${fmt(wStart)} – ${fmt(wEnd)}`;
@@ -1032,13 +1040,6 @@ function excelStatusCF(ws, colLetter){
     { type:'containsText', operator:'containsText', text:'Busy', priority:2, style:{ fill:{type:'pattern',pattern:'solid',bgColor:{argb:'FFFFEB9C'}}, font:{color:{argb:'FF7A5C00'}} } },
     { type:'containsText', operator:'containsText', text:'To Do', priority:3, style:{ fill:{type:'pattern',pattern:'solid',bgColor:{argb:'FFFFC7CE'}}, font:{color:{argb:'FF9C0006'}} } }
   ]});
-}
-function excelWeekHeader(ws, label, span){
-  const r = ws.addRow([label]);
-  r.font = { bold:true, color:{argb:'FF092059'} };
-  ws.mergeCells(r.number, 1, r.number, span);
-  r.getCell(1).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFDCE4F5'} };
-  r.getCell(1).border = { top:{style:'medium',color:{argb:'FF2C498F'}} };
 }
 function groupByWeek(items, getDate){
   const map = new Map();
@@ -1129,14 +1130,9 @@ async function exportCommSchedule(){
 function setCommTime(aid, i, val){
   const a = commActivities.find(x => x.id === aid);
   const d = a.deadlines[i];
-  d.time = val || '18:00';
-  d.shifted = false;
+  d.time = val || DEFAULT_POST_TIME;
   // live collision check against posts of OTHER activities (same activity may coincide)
-  const occupied = new Set();
-  commActivities.forEach(x => { if (x.id !== aid) x.deadlines.forEach(o => occupied.add(o.date.toDateString()+' '+o.time)); });
-  let [h,m] = d.time.split(':').map(Number);
-  while (occupied.has(d.date.toDateString()+' '+pad2(h)+':'+pad2(m)) && h < 23){ h++; d.shifted = true; }
-  d.time = pad2(h)+':'+pad2(m);
+  shiftUntilFree(d, occupiedSlots(aid));
   renderCommOverview(); // shows the corrected time + marker, persists via saveState
 }
 function setCommStatus(aid, i, val){ const a = commActivities.find(x => x.id === aid); a.deadlines[i].status = val; renderCommOverview(); }
@@ -1157,7 +1153,7 @@ function renderCommOverview(){
       </select> <span class="muted">req</span></td>
       <td><button class="danger" onclick="removeCommActivity(${a.id})">remove</button></td></tr>`;
     html += a.deadlines.map((d,i) => `<tr>
-      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${d.recurring ? esc(weekLabel(d.date).short) : offsetLabel(d.offset)})</span>${warnings(d.date)}${d.shifted?' <span class="warn">&#9202; shifted +1h (slot taken)</span>':''}</td>
+      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${d.recurring ? esc(weekLabel(d.date).short) : postOffsetLabel(d.offset)})</span>${pastDateWarning(d.date)}${d.shifted?' <span class="warn">&#9202; shifted +1h (slot taken)</span>':''}</td>
       <td><input value="${esc(d.resp)}" style="max-width:150px;padding:4px 8px" onchange="setCommResp(${a.id},${i},this.value)"></td>
       <td style="white-space:nowrap">${fmt(d.date)} <input type="time" value="${d.time||'18:00'}" style="width:auto;padding:3px 6px" onchange="setCommTime(${a.id},${i},this.value)"></td>
       <td><select class="status-select status-${d.status.replace(' ','')}" onchange="setCommStatus(${a.id},${i},this.value)">
@@ -1298,7 +1294,7 @@ function commitImportDate(i){
   const r = pendingImport.rows[i];
   const val = r.staged;
   if (!val) return; // still typing / empty: keep the input as-is
-  const d = new Date(val + 'T12:00:00');
+  const d = atNoon(val);
   if (isNaN(d) || d.getFullYear() < 2000) return; // ignore partial years like 0002
   r.date = d;
   if (r.typeId) r.status = 'ok';
