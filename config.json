@@ -291,7 +291,7 @@
       "name": "Reminder story",
       "channel": "Instagram story",
       "defaultDaysBefore": 1,
-      "defaultTime": "12:00"
+      "defaultTime": "18:00"
     },
     {
       "id": "aftermovie",
@@ -312,6 +312,27 @@
       "name": "Plan meeting with {x}",
       "channel": "Meeting",
       "defaultDaysBefore": 60,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "repost-recup-week",
+      "name": "Repost Recup weekly overview",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 3,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "repost-recup-story",
+      "name": "Repost Recup story",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 0,
+      "defaultTime": "12:00"
+    },
+    {
+      "id": "info-story",
+      "name": "Info story",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 14,
       "defaultTime": "18:00"
     }
   ],
@@ -357,7 +378,29 @@
           "weeks": 3
         }
       ],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 3,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        },
+        {
+          "type": "dayStory",
+          "daysBefore": 0,
+          "time": "10:00",
+          "note": "mention which food"
+        }
+      ]
     },
     {
       "id": "fakparty",
@@ -411,7 +454,36 @@
           "weeks": 3
         }
       ],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 14,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 10,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 3,
+          "time": "18:00",
+          "note": "only if not full yet"
+        }
+      ]
     },
     {
       "id": "social-run-sport",
@@ -430,7 +502,13 @@
           "days": 2
         }
       ],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        }
+      ]
     },
     {
       "id": "peme-activity",
@@ -459,7 +537,23 @@
           "days": 3
         }
       ],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 2,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 2,
+          "time": "18:00"
+        }
+      ]
     },
     {
       "id": "pal",
@@ -478,7 +572,23 @@
           "weeks": 4
         }
       ],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 2,
+          "time": "18:00"
+        }
+      ]
     },
     {
       "id": "education-survey",
@@ -509,7 +619,28 @@
           "weeks": 1
         }
       ],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        }
+      ]
     },
     {
       "id": "second-hand-booksale",
@@ -544,7 +675,36 @@
           "days": -7
         }
       ],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00",
+          "note": "also mention it clearly on the KD website"
+        },
+        {
+          "type": "info-story",
+          "daysBefore": 14,
+          "time": "18:00",
+          "note": "info about books & money"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 3,
+          "time": "18:00",
+          "note": "remind people to bring their books"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 2,
+          "time": "18:00"
+        }
+      ]
     },
     {
       "id": "training-24h-run",
@@ -563,7 +723,13 @@
           "days": 2
         }
       ],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        }
+      ]
     },
     {
       "id": "sector-night",
@@ -575,14 +741,64 @@
       "id": "standard-activity-enrollment",
       "name": "Standard activity - enrollment link",
       "deadlines": [],
-      "commPlan": [],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 14,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 10,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 3,
+          "time": "18:00",
+          "note": "only if not full yet"
+        }
+      ],
       "commOnly": true
     },
     {
       "id": "standard-activity-no-enrollment",
       "name": "Standard activity - no enrollment",
       "deadlines": [],
-      "commPlan": [],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        }
+      ],
       "commOnly": true
     },
     {
@@ -603,14 +819,69 @@
       "id": "big-fakparty",
       "name": "Big fakparty",
       "deadlines": [],
-      "commPlan": [],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 3,
+          "time": "18:00"
+        },
+        {
+          "type": "dayStory",
+          "daysBefore": 0,
+          "time": "12:00"
+        }
+      ],
       "commOnly": true
     },
     {
       "id": "small-fakparty",
       "name": "Small fakparty",
       "deadlines": [],
-      "commPlan": [],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "repost-recup-week",
+          "daysBefore": 3,
+          "time": "18:00"
+        },
+        {
+          "type": "repost-recup-story",
+          "daysBefore": 0,
+          "time": "12:00"
+        }
+      ],
+      "commOnly": true
+    },
+    {
+      "id": "bibdate",
+      "name": "Bibdate",
+      "deadlines": [],
+      "commPlan": [
+        {
+          "type": "reminderStory",
+          "daysBefore": 2,
+          "time": "18:00"
+        }
+      ],
       "commOnly": true
     }
   ]

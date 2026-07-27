@@ -388,120 +388,891 @@
 <script>
 /* ---------- Default config (fallback when config.json can't be fetched, e.g. file://) ---------- */
 const DEFAULT_CONFIG = {
-  roles: [
-    { name:"Praeses / Vice-praeses", headResponsible:"Tim Ver Elst" },
-    { name:"Ab Actis", headResponsible:"Witse Tirry" },
-    { name:"Quaestor", headResponsible:"Marti Geudens" },
-    { name:"Bedrijvenrelaties", headResponsible:"Victor Vaes" },
-    { name:"Onderwijs", headResponsible:"Lucie Meeus" },
-    { name:"Kursusdienst", headResponsible:"Marcel Mugisha", weeklyTasks:[
-      { name:"Update opening hours", day:0 },
-      { name:"Post KD shifts next week", day:4 }
-    ] },
-    { name:"Events", headResponsible:"Simon Ghijsbrecht" },
-    { name:"Sport", headResponsible:"Robbe Coeckelbergs" },
-    { name:"Ontspanning", headResponsible:"Jolan Vreysen" },
-    { name:"Eerstejaarswerking", headResponsible:"Xander Martens" },
-    { name:"Cultuur", headResponsible:"" },
-    { name:"International", headResponsible:"Fachrunnisa Hidayat" },
-    { name:"Communicatie", headResponsible:"Marti Geudens" },
-    { name:"Support", headResponsible:"Simon Pauwels" },
-    { name:"IT", headResponsible:"Timo Vandevenne" },
-    { name:"Fakbar", headResponsible:"" },
-    { name:"Lustrum", headResponsible:"" },
-    { name:"Skiteam", headResponsible:"" },
-    { name:"Kiescomite", headResponsible:"Tim Ver Elst" }
+  "roles": [
+    {
+      "name": "Praeses / Vice-praeses",
+      "headResponsible": "Tim Ver Elst"
+    },
+    {
+      "name": "Ab Actis",
+      "headResponsible": "Witse Tirry"
+    },
+    {
+      "name": "Quaestor",
+      "headResponsible": "Marti Geudens"
+    },
+    {
+      "name": "Bedrijvenrelaties",
+      "headResponsible": "Victor Vaes"
+    },
+    {
+      "name": "Onderwijs",
+      "headResponsible": "Lucie Meeus"
+    },
+    {
+      "name": "Kursusdienst",
+      "headResponsible": "Marcel Mugisha",
+      "weeklyTasks": [
+        {
+          "name": "Update opening hours",
+          "day": 0
+        },
+        {
+          "name": "Post KD shifts next week",
+          "day": 4
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "headResponsible": "Simon Ghijsbrecht"
+    },
+    {
+      "name": "Sport",
+      "headResponsible": "Robbe Coeckelbergs"
+    },
+    {
+      "name": "Ontspanning",
+      "headResponsible": "Jolan Vreysen"
+    },
+    {
+      "name": "Eerstejaarswerking",
+      "headResponsible": "Xander Martens"
+    },
+    {
+      "name": "Cultuur",
+      "headResponsible": ""
+    },
+    {
+      "name": "International",
+      "headResponsible": "Fachrunnisa Hidayat"
+    },
+    {
+      "name": "Communicatie",
+      "headResponsible": "Marti Geudens"
+    },
+    {
+      "name": "Support",
+      "headResponsible": "Simon Pauwels"
+    },
+    {
+      "name": "IT",
+      "headResponsible": "Timo Vandevenne"
+    },
+    {
+      "name": "Fakbar",
+      "headResponsible": ""
+    },
+    {
+      "name": "Lustrum",
+      "headResponsible": ""
+    },
+    {
+      "name": "Skiteam",
+      "headResponsible": ""
+    },
+    {
+      "name": "Kiescomite",
+      "headResponsible": "Tim Ver Elst"
+    }
   ],
-  deadlineTypes: [
-    { id:"communication", name:"Communication request", defaultWeeks:4 },
-    { id:"material", name:"Material request", defaultWeeks:4 },
-    { id:"materialOrder", name:"Quaestor request (purchase of X)", defaultWeeks:3 },
-    { id:"drinks", name:"Drink request (order at Recup)", defaultWeeks:3 },
-    { id:"food", name:"Food request", defaultWeeks:3 },
-    { id:"van", name:"Nette request", defaultWeeks:2 },
-    { id:"province", name:"Provincie request", defaultWeeks:4 },
-    { id:"publicDomain", name:"IOD request", defaultWeeks:4 },
-    { id:"room", name:"Room KUL request", defaultWeeks:4 },
-    { id:"fakpartyPromo", name:"Arrange Fakparty promo with Quaestor", defaultWeeks:3 },
-    { id:"netteDriver", name:"Arrange Nette driver", defaultWeeks:1 },
-    { id:"shiftingList", name:"Create shiftinglist", defaultWeeks:3 },
-    { id:"headtapper", name:"Arrange headtapper", defaultWeeks:4 },
-    { id:"enrollmentForms", name:"Make Enrollment forms (to be submitted in communication request)", defaultWeeks:4 },
-    { id:"create-wyder-event", name:"Create Wyder event", defaultWeeks:1 },
-    { id:"reminder-message-in-whatsapp-community", name:"Reminder message in Whatsapp community", defaultDays:2 },
-    { id:"finish-budget", name:"Finish budget and send to Q's", fixedDate:"2026-08-01" },
-    { id:"cash-register-request", name:"Cash register request", defaultWeeks:2 },
-    { id:"request-bank-card", name:"Request bank card", defaultWeeks:2 },
-    { id:"make-activity-on-website", name:"Make activity on website", defaultWeeks:3 },
-    { id:"make-draaiboek", name:"Make draaiboek", defaultWeeks:2 },
-    { id:"make-form-on-website", name:"Make form on website", defaultWeeks:3 },
-    { id:"close-form-on-website", name:"Close form on website", defaultDays:3 },
-    { id:"plan-meeting", name:"Plan meeting with {x}", defaultWeeks:4 },
-    { id:"order-food", name:"Order food", defaultDays:0 },
-    { id:"make-powerpoint", name:"Make PowerPoint", defaultDays:3 },
-    { id:"survey-ready", name:"Survey ready", defaultWeeks:1 },
-    { id:"sort-books", name:"Sort books per year & check seller data", defaultDays:2 },
-    { id:"mail-unsold-books", name:"Mail owners of unsold books", defaultDays:-7 }
+  "deadlineTypes": [
+    {
+      "id": "communication",
+      "name": "Communication request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "material",
+      "name": "Material request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "materialOrder",
+      "name": "Quaestor request (purchase of X)",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "drinks",
+      "name": "Drink request (order at Recup)",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "food",
+      "name": "Food request",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "van",
+      "name": "Nette request",
+      "defaultWeeks": 2
+    },
+    {
+      "id": "province",
+      "name": "Provincie request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "publicDomain",
+      "name": "IOD request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "room",
+      "name": "Room KUL request",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "fakpartyPromo",
+      "name": "Arrange Fakparty promo with Quaestor",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "netteDriver",
+      "name": "Arrange Nette driver",
+      "defaultWeeks": 1
+    },
+    {
+      "id": "shiftingList",
+      "name": "Create shiftinglist",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "headtapper",
+      "name": "Arrange headtapper",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "enrollmentForms",
+      "name": "Make Enrollment forms (to be submitted in communication request)",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "create-wyder-event",
+      "name": "Create Wyder event",
+      "defaultWeeks": 1
+    },
+    {
+      "id": "reminder-message-in-whatsapp-community",
+      "name": "Reminder message in Whatsapp community",
+      "defaultDays": 2
+    },
+    {
+      "id": "finish-budget",
+      "name": "Finish budget and send to Q's",
+      "fixedDate": "2026-08-01"
+    },
+    {
+      "id": "cash-register-request",
+      "name": "Cash register request",
+      "defaultWeeks": 2
+    },
+    {
+      "id": "request-bank-card",
+      "name": "Request bank card",
+      "defaultWeeks": 2
+    },
+    {
+      "id": "make-activity-on-website",
+      "name": "Make activity on website",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "make-draaiboek",
+      "name": "Make draaiboek",
+      "defaultWeeks": 2
+    },
+    {
+      "id": "make-form-on-website",
+      "name": "Make form on website",
+      "defaultWeeks": 3
+    },
+    {
+      "id": "close-form-on-website",
+      "name": "Close form on website",
+      "defaultDays": 3
+    },
+    {
+      "id": "plan-meeting",
+      "name": "Plan meeting with {x}",
+      "defaultWeeks": 4
+    },
+    {
+      "id": "order-food",
+      "name": "Order food",
+      "defaultDays": 0
+    },
+    {
+      "id": "make-powerpoint",
+      "name": "Make PowerPoint",
+      "defaultDays": 3
+    },
+    {
+      "id": "survey-ready",
+      "name": "Survey ready",
+      "defaultWeeks": 1
+    },
+    {
+      "id": "sort-books",
+      "name": "Sort books per year & check seller data",
+      "defaultDays": 2
+    },
+    {
+      "id": "mail-unsold-books",
+      "name": "Mail owners of unsold books",
+      "defaultDays": -7
+    }
   ],
-  academicYear: { semester1Start:"2026-09-21", semester2Start:"2027-02-08" },
-  commChannels: ["Instagram post","Instagram story","Instagram reel","Facebook event","Whatsapp community","Paid meta ads","Website","Linktree","Mailing? (look into mailinglist marti!!!)","Meeting"],
-  postTypes: [
-    { id:"fbEvent", name:"Facebook event online", channel:"Facebook event", defaultDaysBefore:21, defaultTime:"18:00" },
-    { id:"announcement", name:"Announcement post", channel:"Instagram post", defaultDaysBefore:21, defaultTime:"18:00" },
-    { id:"reminderPost", name:"Reminder post", channel:"Instagram post", defaultDaysBefore:7, defaultTime:"18:00" },
-    { id:"dayStory", name:"Day-of story", channel:"Instagram story", defaultDaysBefore:0, defaultTime:"12:00" },
-    { id:"lineup", name:"Poster / line-up post", channel:"Instagram post", defaultDaysBefore:14, defaultTime:"18:00" },
-    { id:"reminderStory", name:"Reminder story", channel:"Instagram story", defaultDaysBefore:1, defaultTime:"12:00" },
-    { id:"aftermovie", name:"Aftermovie / recap", channel:"Instagram post", defaultDaysBefore:-3, defaultTime:"18:00" },
-    { id:"regReminder", name:"Registration reminder", channel:"Instagram story", defaultDaysBefore:10, defaultTime:"18:00" },
-    { id:"plan-meeting-post", name:"Plan meeting with {x}", channel:"Meeting", defaultDaysBefore:60, defaultTime:"18:00" }
+  "academicYear": {
+    "semester1Start": "2026-09-21",
+    "semester2Start": "2027-02-08"
+  },
+  "commChannels": [
+    "Instagram post",
+    "Instagram story",
+    "Instagram reel",
+    "Facebook event",
+    "Whatsapp community",
+    "Paid meta ads",
+    "Website",
+    "Linktree",
+    "Mailing? (look into mailinglist marti!!!)",
+    "Meeting"
   ],
-  eventTypes: [
-    { id:"bsa", name:"BSA",
-      deadlines:[{type:"communication",weeks:4},{type:"netteDriver",weeks:1},{type:"publicDomain",weeks:4},{type:"food",weeks:3},{type:"material",weeks:4},{type:"materialOrder",weeks:3},{type:"van",weeks:2},{type:"room",weeks:4},{type:"shiftingList",weeks:3}],
-      commPlan:[] },
-    { id:"fakparty", name:"Fakparty",
-      deadlines:[{type:"communication",weeks:4},{type:"fakpartyPromo",weeks:3},{type:"headtapper",weeks:4},{type:"materialOrder",weeks:3},{type:"shiftingList",weeks:3}],
-      commPlan:[] },
-    { id:"cantus", name:"Cantus",
-      deadlines:[{type:"communication",weeks:4},{type:"material",weeks:4},{type:"enrollmentForms",weeks:4},{type:"materialOrder",weeks:3},{type:"shiftingList",weeks:3}],
-      commPlan:[] },
-    { id:"social-run-sport", name:"Social Run",
-      deadlines:[{type:"communication",weeks:4},{type:"create-wyder-event",weeks:1},{type:"reminder-message-in-whatsapp-community",days:2}],
-      commPlan:[] },
-    { id:"peme-activity", name:"PEME-activity",
-      deadlines:[],
-      commPlan:[] },
-    { id:"oed", name:"OED",
-      deadlines:[{type:"drinks",weeks:3},{type:"communication",weeks:4},{type:"order-food",days:0},{type:"make-powerpoint",days:3}],
-      commPlan:[] },
-    { id:"pal", name:"PAL",
-      deadlines:[{type:"drinks",weeks:3},{type:"materialOrder",weeks:3},{type:"communication",weeks:4}],
-      commPlan:[] },
-    { id:"education-survey", name:"Education Survey",
-      deadlines:[{type:"drinks",weeks:3},{type:"materialOrder",weeks:3},{type:"material",weeks:4},{type:"van",weeks:2},{type:"communication",weeks:4},{type:"survey-ready",weeks:1}],
-      commPlan:[] },
-    { id:"second-hand-booksale", name:"Second Hand Booksale",
-      deadlines:[{type:"communication",weeks:4},{type:"room",weeks:4},{type:"make-activity-on-website",weeks:3},{type:"shiftingList",weeks:3},{type:"reminder-message-in-whatsapp-community",days:2},{type:"sort-books",days:2},{type:"mail-unsold-books",days:-7}],
-      commPlan:[] },
-    { id:"training-24h-run", name:"Training 24h Run",
-      deadlines:[{type:"communication",weeks:4},{type:"create-wyder-event",weeks:1},{type:"reminder-message-in-whatsapp-community",days:2}],
-      commPlan:[] },
-    { id:"sector-night", name:"Sector Night",
-      deadlines:[],
-      commPlan:[] },
-    { id:"standard-activity-enrollment", name:"Standard activity - enrollment link",
-      deadlines:[], commPlan:[], commOnly:true },
-    { id:"standard-activity-no-enrollment", name:"Standard activity - no enrollment",
-      deadlines:[], commPlan:[], commOnly:true },
-    { id:"big-activity", name:"Big activity",
-      deadlines:[],
-      commPlan:[{type:"plan-meeting-post",daysBefore:60,time:"18:00",x:"organising function"}],
-      commOnly:true },
-    { id:"big-fakparty", name:"Big fakparty",
-      deadlines:[], commPlan:[], commOnly:true },
-    { id:"small-fakparty", name:"Small fakparty",
-      deadlines:[], commPlan:[], commOnly:true }
+  "postTypes": [
+    {
+      "id": "fbEvent",
+      "name": "Facebook event online",
+      "channel": "Facebook event",
+      "defaultDaysBefore": 21,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "announcement",
+      "name": "Announcement post",
+      "channel": "Instagram post",
+      "defaultDaysBefore": 21,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "reminderPost",
+      "name": "Reminder post",
+      "channel": "Instagram post",
+      "defaultDaysBefore": 7,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "dayStory",
+      "name": "Day-of story",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 0,
+      "defaultTime": "12:00"
+    },
+    {
+      "id": "lineup",
+      "name": "Poster / line-up post",
+      "channel": "Instagram post",
+      "defaultDaysBefore": 14,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "reminderStory",
+      "name": "Reminder story",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 1,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "aftermovie",
+      "name": "Aftermovie / recap",
+      "channel": "Instagram post",
+      "defaultDaysBefore": -3,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "regReminder",
+      "name": "Registration reminder",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 10,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "plan-meeting-post",
+      "name": "Plan meeting with {x}",
+      "channel": "Meeting",
+      "defaultDaysBefore": 60,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "repost-recup-week",
+      "name": "Repost Recup weekly overview",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 3,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "repost-recup-story",
+      "name": "Repost Recup story",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 0,
+      "defaultTime": "12:00"
+    },
+    {
+      "id": "info-story",
+      "name": "Info story",
+      "channel": "Instagram story",
+      "defaultDaysBefore": 14,
+      "defaultTime": "18:00"
+    }
+  ],
+  "eventTypes": [
+    {
+      "id": "bsa",
+      "name": "BSA",
+      "deadlines": [
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "netteDriver",
+          "weeks": 1
+        },
+        {
+          "type": "publicDomain",
+          "weeks": 4
+        },
+        {
+          "type": "food",
+          "weeks": 3
+        },
+        {
+          "type": "material",
+          "weeks": 4
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "van",
+          "weeks": 2
+        },
+        {
+          "type": "room",
+          "weeks": 4
+        },
+        {
+          "type": "shiftingList",
+          "weeks": 3
+        }
+      ],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 3,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        },
+        {
+          "type": "dayStory",
+          "daysBefore": 0,
+          "time": "10:00",
+          "note": "mention which food"
+        }
+      ]
+    },
+    {
+      "id": "fakparty",
+      "name": "Fakparty",
+      "deadlines": [
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "fakpartyPromo",
+          "weeks": 3
+        },
+        {
+          "type": "headtapper",
+          "weeks": 4
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "shiftingList",
+          "weeks": 3
+        }
+      ],
+      "commPlan": []
+    },
+    {
+      "id": "cantus",
+      "name": "Cantus",
+      "deadlines": [
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "material",
+          "weeks": 4
+        },
+        {
+          "type": "enrollmentForms",
+          "weeks": 4
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "shiftingList",
+          "weeks": 3
+        }
+      ],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 14,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 10,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 3,
+          "time": "18:00",
+          "note": "only if not full yet"
+        }
+      ]
+    },
+    {
+      "id": "social-run-sport",
+      "name": "Social Run",
+      "deadlines": [
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "create-wyder-event",
+          "weeks": 1
+        },
+        {
+          "type": "reminder-message-in-whatsapp-community",
+          "days": 2
+        }
+      ],
+      "commPlan": [
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        }
+      ]
+    },
+    {
+      "id": "peme-activity",
+      "name": "PEME-activity",
+      "deadlines": [],
+      "commPlan": []
+    },
+    {
+      "id": "oed",
+      "name": "OED",
+      "deadlines": [
+        {
+          "type": "drinks",
+          "weeks": 3
+        },
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "order-food",
+          "days": 0
+        },
+        {
+          "type": "make-powerpoint",
+          "days": 3
+        }
+      ],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 2,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 2,
+          "time": "18:00"
+        }
+      ]
+    },
+    {
+      "id": "pal",
+      "name": "PAL",
+      "deadlines": [
+        {
+          "type": "drinks",
+          "weeks": 3
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "communication",
+          "weeks": 4
+        }
+      ],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 2,
+          "time": "18:00"
+        }
+      ]
+    },
+    {
+      "id": "education-survey",
+      "name": "Education Survey",
+      "deadlines": [
+        {
+          "type": "drinks",
+          "weeks": 3
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "material",
+          "weeks": 4
+        },
+        {
+          "type": "van",
+          "weeks": 2
+        },
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "survey-ready",
+          "weeks": 1
+        }
+      ],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        }
+      ]
+    },
+    {
+      "id": "second-hand-booksale",
+      "name": "Second Hand Booksale",
+      "deadlines": [
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "room",
+          "weeks": 4
+        },
+        {
+          "type": "make-activity-on-website",
+          "weeks": 3
+        },
+        {
+          "type": "shiftingList",
+          "weeks": 3
+        },
+        {
+          "type": "reminder-message-in-whatsapp-community",
+          "days": 2
+        },
+        {
+          "type": "sort-books",
+          "days": 2
+        },
+        {
+          "type": "mail-unsold-books",
+          "days": -7
+        }
+      ],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00",
+          "note": "also mention it clearly on the KD website"
+        },
+        {
+          "type": "info-story",
+          "daysBefore": 14,
+          "time": "18:00",
+          "note": "info about books & money"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 3,
+          "time": "18:00",
+          "note": "remind people to bring their books"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 2,
+          "time": "18:00"
+        }
+      ]
+    },
+    {
+      "id": "training-24h-run",
+      "name": "Training 24h Run",
+      "deadlines": [
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "create-wyder-event",
+          "weeks": 1
+        },
+        {
+          "type": "reminder-message-in-whatsapp-community",
+          "days": 2
+        }
+      ],
+      "commPlan": [
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        }
+      ]
+    },
+    {
+      "id": "sector-night",
+      "name": "Sector Night",
+      "deadlines": [],
+      "commPlan": []
+    },
+    {
+      "id": "standard-activity-enrollment",
+      "name": "Standard activity - enrollment link",
+      "deadlines": [],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 14,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 10,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 3,
+          "time": "18:00",
+          "note": "only if not full yet"
+        }
+      ],
+      "commOnly": true
+    },
+    {
+      "id": "standard-activity-no-enrollment",
+      "name": "Standard activity - no enrollment",
+      "deadlines": [],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 1,
+          "time": "18:00"
+        }
+      ],
+      "commOnly": true
+    },
+    {
+      "id": "big-activity",
+      "name": "Big activity",
+      "deadlines": [],
+      "commPlan": [
+        {
+          "type": "plan-meeting-post",
+          "daysBefore": 60,
+          "time": "18:00",
+          "x": "organising function"
+        }
+      ],
+      "commOnly": true
+    },
+    {
+      "id": "big-fakparty",
+      "name": "Big fakparty",
+      "deadlines": [],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 3,
+          "time": "18:00"
+        },
+        {
+          "type": "dayStory",
+          "daysBefore": 0,
+          "time": "12:00"
+        }
+      ],
+      "commOnly": true
+    },
+    {
+      "id": "small-fakparty",
+      "name": "Small fakparty",
+      "deadlines": [],
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "repost-recup-week",
+          "daysBefore": 3,
+          "time": "18:00"
+        },
+        {
+          "type": "repost-recup-story",
+          "daysBefore": 0,
+          "time": "12:00"
+        }
+      ],
+      "commOnly": true
+    },
+    {
+      "id": "bibdate",
+      "name": "Bibdate",
+      "deadlines": [],
+      "commPlan": [
+        {
+          "type": "reminderStory",
+          "daysBefore": 2,
+          "time": "18:00"
+        }
+      ],
+      "commOnly": true
+    }
   ]
 };
 
@@ -534,7 +1305,7 @@ function resolveCommPlan(et, xOverrides){
     const pt = (config.postTypes||[]).find(t => t.id === p.type);
     if (!pt) return null;
     const x = (xOverrides && xOverrides[i]) || p.x || '…';
-    return { name:pt.name.replace('{x}', x), channel:pt.channel,
+    return { name:pt.name.replace('{x}', x), channel:pt.channel, note:p.note,
              daysBefore: p.daysBefore != null ? p.daysBefore : pt.defaultDaysBefore,
              time: p.time || pt.defaultTime || '18:00' };
   }).filter(Boolean);
@@ -961,7 +1732,10 @@ function addCommActivity(){
 function pushCommActivity(name, resp, typeName, eventDate, plan){
   const deadlines = plan.map(p => {
     const dd = new Date(eventDate); dd.setDate(dd.getDate() - p.daysBefore);
-    return { name:`${p.name} — ${p.channel}`, offset:p.daysBefore, date:dd, time:p.time||'18:00', status:'To Do', resp:resp };
+    // the optional note (e.g. "info about books & money") stays a separate field:
+    // its own column in the Excel export and part of the description in the .ics
+    return { name:`${p.name} — ${p.channel}`, note:p.note || '', offset:p.daysBefore,
+             date:dd, time:p.time||DEFAULT_POST_TIME, status:'To Do', resp:resp };
   }).sort((a,b) => a.date - b.date);
   assignCommTimes(deadlines);
   commActivities.push({ id:nextId++, name, resp, typeName, date:eventDate, deadlines });
@@ -1173,12 +1947,13 @@ async function exportCommSchedule(){
 
   const wb = new ExcelJS.Workbook();
   groupByWeek(posts, p => p.d.date).forEach(g => {
-    const ws = weekSheet(wb, g, ['Date','Time','Post','Activity','Responsible','Status'], [14,9,36,28,18,12]);
+    const ws = weekSheet(wb, g, ['Date','Time','Post','Activity','Note','Responsible','Status'], [14,9,32,26,34,16,12]);
     g.items.forEach(({a,d}) => {
-      const r = ws.addRow([fmt(d.date), d.time, d.name, a.name, d.resp || a.resp, d.status]);
-      excelStatusCell(r.getCell(6), d.status);
+      const r = ws.addRow([fmt(d.date), d.time, d.name, a.name, d.note || '', d.resp || a.resp, d.status]);
+      r.getCell(5).alignment = { wrapText:true, vertical:'top' };
+      excelStatusCell(r.getCell(7), d.status);
     });
-    excelStatusCF(ws, 'F');
+    excelStatusCF(ws, 'G');
   });
   const buf = await wb.xlsx.writeBuffer();
   download(new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
@@ -1210,7 +1985,7 @@ function renderCommOverview(){
       </select> <span class="muted">req</span></td>
       <td><button class="danger" onclick="removeCommActivity(${a.id})">remove</button></td></tr>`;
     html += a.deadlines.map((d,i) => `<tr>
-      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${d.recurring ? esc(weekLabel(d.date).short) : postOffsetLabel(d.offset)})</span>${pastDateWarning(d.date)}${d.shifted?' <span class="warn">&#9202; shifted +1h (slot taken)</span>':''}</td>
+      <td style="padding-left:26px">${esc(d.name)} <span class="muted">(${d.recurring ? esc(weekLabel(d.date).short) : postOffsetLabel(d.offset)})</span>${pastDateWarning(d.date)}${d.shifted?' <span class="warn">&#9202; shifted +1h (slot taken)</span>':''}${d.note?`<br><span class="muted" style="padding-left:2px">&#9432; ${esc(d.note)}</span>`:''}</td>
       <td><input value="${esc(d.resp)}" style="max-width:150px;padding:4px 8px" onchange="setCommResp(${a.id},${i},this.value)"></td>
       <td style="white-space:nowrap">${fmt(d.date)} <input type="time" value="${d.time||'18:00'}" style="width:auto;padding:3px 6px" onchange="setCommTime(${a.id},${i},this.value)"></td>
       <td><select class="status-select status-${d.status.replace(' ','')}" onchange="setCommStatus(${a.id},${i},this.value)">
@@ -1682,7 +2457,9 @@ function exportICS(list = activities, fname = 'Industria_deadlines', timed = fal
         const end = new Date(d.date); end.setDate(end.getDate()+1);
         dt = `DTSTART;VALUE=DATE:${p(d.date)}\r\nDTEND;VALUE=DATE:${p(end)}`;
       }
-      ics += `BEGIN:VEVENT\r\nUID:${a.id}-${i}@industria.be\r\nDTSTAMP:${p(new Date())}T000000Z\r\n${dt}\r\nSUMMARY:[${icsEsc(a.name)}] ${icsEsc(d.name)}\r\nDESCRIPTION:${timed?'Post':'Deadline'} for ${icsEsc(a.name)} (${icsEsc(a.typeName)}) on ${fmt(a.date)}. Responsible: ${icsEsc(d.resp||a.resp)}\r\nEND:VEVENT\r\n`;
+      // the optional note goes in the description, so calendar titles stay short
+      const note = d.note ? `${icsEsc(d.note)}\\n` : '';
+      ics += `BEGIN:VEVENT\r\nUID:${a.id}-${i}@industria.be\r\nDTSTAMP:${p(new Date())}T000000Z\r\n${dt}\r\nSUMMARY:[${icsEsc(a.name)}] ${icsEsc(d.name)}\r\nDESCRIPTION:${note}${timed?'Post':'Deadline'} for ${icsEsc(a.name)} (${icsEsc(a.typeName)}) on ${fmt(a.date)}. Responsible: ${icsEsc(d.resp||a.resp)}\r\nEND:VEVENT\r\n`;
     });
   });
   ics += 'END:VCALENDAR\r\n';
@@ -1805,6 +2582,7 @@ function renderAdmin(){
               : '';
             return `<div class="admin-row">
               <span style="flex:2">${esc(pt.name)} <span class="muted">(${esc(pt.channel)})</span></span>
+              <input type="text" value="${esc(p.note||'')}" placeholder="note (optional)" style="flex:2" onchange="adminPostSet(${i},${pi},'note',this.value.trim())">
               ${xInput}
               <input type="number" value="${p.daysBefore != null ? p.daysBefore : pt.defaultDaysBefore}" title="negative = after the event" onchange="adminPostSet(${i},${pi},'daysBefore',parseInt(this.value)||0)"> <span class="muted">d</span>
               <input type="time" value="${p.time || pt.defaultTime || '18:00'}" style="width:auto" onchange="adminPostSet(${i},${pi},'time',this.value)">
