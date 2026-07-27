@@ -247,7 +247,8 @@
     "Paid meta ads",
     "Website",
     "Linktree",
-    "Mailing? (look into mailinglist marti!!!)"
+    "Mailing? (look into mailinglist marti!!!)",
+    "Meeting"
   ],
   "postTypes": [
     {
@@ -304,6 +305,13 @@
       "name": "Registration reminder",
       "channel": "Instagram story",
       "defaultDaysBefore": 10,
+      "defaultTime": "18:00"
+    },
+    {
+      "id": "plan-meeting-post",
+      "name": "Plan meeting with {x}",
+      "channel": "Meeting",
+      "defaultDaysBefore": 60,
       "defaultTime": "18:00"
     }
   ],
@@ -562,6 +570,27 @@
       "name": "Sector Night",
       "deadlines": [],
       "commPlan": []
+    },
+    {
+      "id": "standard-activity",
+      "name": "Standard activity",
+      "deadlines": [],
+      "commPlan": [],
+      "commOnly": true
+    },
+    {
+      "id": "big-activity",
+      "name": "Big activity",
+      "deadlines": [],
+      "commPlan": [
+        {
+          "type": "plan-meeting-post",
+          "daysBefore": 60,
+          "time": "18:00",
+          "x": "organising function"
+        }
+      ],
+      "commOnly": true
     }
   ]
 }

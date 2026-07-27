@@ -38,6 +38,10 @@ A static single-page web app for [Industria](https://industria.be) (student asso
    6. Repeat for all events not in the activity Excel.
 8. Done! Click on **Export Excel** and enjoy a deadline planner for within your function.
 
+### Communication-only event types
+
+An event type can be marked **communication planner only** (`commOnly: true` in the config, checkbox in the Admin tab). It is then hidden everywhere in the deadline planner — dropdowns and import — and its internal deadlines are ignored. Two of these ship by default for activities without a specific subtype: **Standard activity** (just the standard post plan) and **Big activity**, whose plan starts with *Plan meeting with {x}* — a meeting with the organising function **2 months (60 days) before** the event. The `{x}` placeholder works in post types too: fill in who the meeting is with, per event type in the Admin tab or per activity in the *Other* form.
+
 ### Weekly tasks per function
 
 Each role can have **weekly tasks** in the config (name + weekday) — recurring jobs that are not tied to an activity, e.g. counting the cash every Monday. The responsible is always that function's head responsible. Manage them per role in the Admin tab. When your function has weekly tasks, a card appears in the deadline planner: pick a period (quick presets: Semester 1 / Semester 2 / Semester 1 & 2 — the last one skips the exam period between the semesters) and click **Add weekly tasks**. All occurrences are grouped under a single activity **"Weekly tasks"** in the year overview (labelled per semester week), so the Excel export keeps one block instead of hundreds of separate activities. Generating a second period merges into the same activity.
