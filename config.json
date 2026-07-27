@@ -197,6 +197,31 @@
       "id": "plan-meeting",
       "name": "Plan meeting with {x}",
       "defaultWeeks": 4
+    },
+    {
+      "id": "order-food",
+      "name": "Order food",
+      "defaultDays": 0
+    },
+    {
+      "id": "make-powerpoint",
+      "name": "Make PowerPoint",
+      "defaultDays": 3
+    },
+    {
+      "id": "survey-ready",
+      "name": "Survey ready",
+      "defaultWeeks": 1
+    },
+    {
+      "id": "sort-books",
+      "name": "Sort books per year & check seller data",
+      "defaultDays": 2
+    },
+    {
+      "id": "mail-unsold-books",
+      "name": "Mail owners of unsold books",
+      "defaultDays": -7
     }
   ],
   "academicYear": {
@@ -398,25 +423,109 @@
     {
       "id": "oed",
       "name": "OED",
-      "deadlines": [],
+      "deadlines": [
+        {
+          "type": "drinks",
+          "weeks": 3
+        },
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "order-food",
+          "days": 0
+        },
+        {
+          "type": "make-powerpoint",
+          "days": 3
+        }
+      ],
       "commPlan": []
     },
     {
       "id": "pal",
       "name": "PAL",
-      "deadlines": [],
+      "deadlines": [
+        {
+          "type": "drinks",
+          "weeks": 3
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "communication",
+          "weeks": 4
+        }
+      ],
       "commPlan": []
     },
     {
       "id": "education-survey",
       "name": "Education Survey",
-      "deadlines": [],
+      "deadlines": [
+        {
+          "type": "drinks",
+          "weeks": 3
+        },
+        {
+          "type": "materialOrder",
+          "weeks": 3
+        },
+        {
+          "type": "material",
+          "weeks": 4
+        },
+        {
+          "type": "van",
+          "weeks": 2
+        },
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "survey-ready",
+          "weeks": 1
+        }
+      ],
       "commPlan": []
     },
     {
       "id": "second-hand-booksale",
       "name": "Second Hand Booksale",
-      "deadlines": [],
+      "deadlines": [
+        {
+          "type": "communication",
+          "weeks": 4
+        },
+        {
+          "type": "room",
+          "weeks": 4
+        },
+        {
+          "type": "make-activity-on-website",
+          "weeks": 3
+        },
+        {
+          "type": "shiftingList",
+          "weeks": 3
+        },
+        {
+          "type": "reminder-message-in-whatsapp-community",
+          "days": 2
+        },
+        {
+          "type": "sort-books",
+          "days": 2
+        },
+        {
+          "type": "mail-unsold-books",
+          "days": -7
+        }
+      ],
       "commPlan": []
     },
     {

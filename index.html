@@ -110,11 +110,11 @@
       <div><label>Date of activity</label><input type="date" id="actDate"></div>
     </div>
     <div id="otherPanel" class="hidden" style="margin-top:12px">
-      <label>Select the deadlines for this activity (time before the event, in weeks or days)</label>
+      <label>Select the deadlines for this activity (time before the event, in weeks or days; negative = after)</label>
       <div class="checklist" id="otherChecklist"></div>
       <div class="row" style="margin-top:10px; align-items:flex-end">
         <div style="max-width:260px"><label>Custom deadline name</label><input id="customDlName" placeholder="e.g. DJ booking"></div>
-        <div style="max-width:110px"><label>Time before</label><input type="number" id="customDlWeeks" min="0" value="4"></div>
+        <div style="max-width:110px"><label>Time before</label><input type="number" id="customDlWeeks" value="4" title="negative = after the event"></div>
         <div style="max-width:120px"><label>Unit</label><select id="customDlUnit"><option value="weeks" selected>week(s)</option><option value="days">day(s)</option></select></div>
         <div style="max-width:120px"><button class="secondary" onclick="addCustomDeadline()">+ Add</button></div>
       </div>
@@ -430,7 +430,12 @@ const DEFAULT_CONFIG = {
     { id:"make-draaiboek", name:"Make draaiboek", defaultWeeks:2 },
     { id:"make-form-on-website", name:"Make form on website", defaultWeeks:3 },
     { id:"close-form-on-website", name:"Close form on website", defaultDays:3 },
-    { id:"plan-meeting", name:"Plan meeting with {x}", defaultWeeks:4 }
+    { id:"plan-meeting", name:"Plan meeting with {x}", defaultWeeks:4 },
+    { id:"order-food", name:"Order food", defaultDays:0 },
+    { id:"make-powerpoint", name:"Make PowerPoint", defaultDays:3 },
+    { id:"survey-ready", name:"Survey ready", defaultWeeks:1 },
+    { id:"sort-books", name:"Sort books per year & check seller data", defaultDays:2 },
+    { id:"mail-unsold-books", name:"Mail owners of unsold books", defaultDays:-7 }
   ],
   academicYear: { semester1Start:"2026-09-21", semester2Start:"2027-02-08" },
   commChannels: ["Instagram post","Instagram story","Instagram reel","Facebook event","Whatsapp community","Paid meta ads","Website","Linktree","Mailing? (look into mailinglist marti!!!)"],
@@ -461,16 +466,16 @@ const DEFAULT_CONFIG = {
       deadlines:[],
       commPlan:[] },
     { id:"oed", name:"OED",
-      deadlines:[],
+      deadlines:[{type:"drinks",weeks:3},{type:"communication",weeks:4},{type:"order-food",days:0},{type:"make-powerpoint",days:3}],
       commPlan:[] },
     { id:"pal", name:"PAL",
-      deadlines:[],
+      deadlines:[{type:"drinks",weeks:3},{type:"materialOrder",weeks:3},{type:"communication",weeks:4}],
       commPlan:[] },
     { id:"education-survey", name:"Education Survey",
-      deadlines:[],
+      deadlines:[{type:"drinks",weeks:3},{type:"materialOrder",weeks:3},{type:"material",weeks:4},{type:"van",weeks:2},{type:"communication",weeks:4},{type:"survey-ready",weeks:1}],
       commPlan:[] },
     { id:"second-hand-booksale", name:"Second Hand Booksale",
-      deadlines:[],
+      deadlines:[{type:"communication",weeks:4},{type:"room",weeks:4},{type:"make-activity-on-website",weeks:3},{type:"shiftingList",weeks:3},{type:"reminder-message-in-whatsapp-community",days:2},{type:"sort-books",days:2},{type:"mail-unsold-books",days:-7}],
       commPlan:[] },
     { id:"training-24h-run", name:"Training 24h Run",
       deadlines:[{type:"communication",weeks:4},{type:"create-wyder-event",weeks:1},{type:"reminder-message-in-whatsapp-community",days:2}],
@@ -639,7 +644,7 @@ function renderOtherChecklist(){
       <input type="checkbox" id="chk_${d.id}">
       <label for="chk_${d.id}" style="margin:0;font-weight:400;flex:1">${esc(d.name)}</label>
       ${xInput}
-      <input type="number" id="wk_${d.id}" min="0" value="${d.defaultDays!=null?d.defaultDays:d.defaultWeeks}">
+      <input type="number" id="wk_${d.id}" value="${d.defaultDays!=null?d.defaultDays:d.defaultWeeks}" title="negative = after the event">
       <select id="unit_${d.id}" style="width:auto;padding:4px 6px">
         <option value="weeks" ${d.defaultDays!=null?'':'selected'}>wk</option>
         <option value="days" ${d.defaultDays!=null?'selected':''}>d</option>
@@ -648,7 +653,9 @@ function renderOtherChecklist(){
 }
 function dlOffsetLabel(d){
   if (d.fixedDate) return 'fixed date';
-  return d.days != null ? `${d.days} d before` : `${d.weeks} wk before`;
+  const n = d.days != null ? d.days : d.weeks;
+  const unit = d.days != null ? 'd' : 'wk';
+  return n < 0 ? `${-n} ${unit} after` : `${n} ${unit} before`;
 }
 function addCustomDeadline(){
   const n = document.getElementById('customDlName').value.trim();
@@ -1584,7 +1591,7 @@ function renderAdmin(){
     const kind = d.fixedDate != null ? 'fixed' : (d.defaultDays != null ? 'days' : 'weeks');
     const valueInput = kind === 'fixed'
       ? `<input type="date" value="${d.fixedDate}" style="width:auto" onchange="adminDtFixed(${i},this.value)">`
-      : `<input type="number" min="0" value="${d.defaultDays!=null?d.defaultDays:d.defaultWeeks}" onchange="adminDtOffset(${i},this.value)">`;
+      : `<input type="number" value="${d.defaultDays!=null?d.defaultDays:d.defaultWeeks}" title="negative = after the event" onchange="adminDtOffset(${i},this.value)">`;
     return `
     <div class="admin-row">
       <input type="text" value="${esc(d.name)}" onchange="config.deadlineTypes[${i}].name=this.value; renderOtherChecklist()">
@@ -1626,7 +1633,7 @@ function renderAdmin(){
       <h3><input type="text" value="${esc(e.name)}" style="max-width:240px" onchange="config.eventTypes[${i}].name=this.value; renderTypeSelect()">
         <button class="danger" onclick="config.eventTypes.splice(${i},1); renderAll()">remove event type</button></h3>
       <details ${adminOpen[e.id+':dl']?'open':''} ontoggle="adminOpen['${e.id}:dl']=this.open">
-        <summary>Internal deadlines (time before event, in weeks or days)</summary>
+        <summary>Internal deadlines (time before event, in weeks or days; negative = after)</summary>
       <div class="checklist">
         ${config.deadlineTypes.map(d => {
           const dl = e.deadlines.find(x => x.type === d.id);
@@ -1643,7 +1650,7 @@ function renderAdmin(){
             <input type="checkbox" ${dl?'checked':''} onchange="adminToggle(${i},'${d.id}',this.checked)">
             <span style="flex:1">${esc(d.name)}</span>
             ${xInput}
-            <input type="number" min="0" value="${dl ? (dl.days!=null?dl.days:dl.weeks) : (d.defaultDays!=null?d.defaultDays:d.defaultWeeks)}" ${dl?'':'disabled'} onchange="adminDlOffset(${i},'${d.id}',this.value)">
+            <input type="number" value="${dl ? (dl.days!=null?dl.days:dl.weeks) : (d.defaultDays!=null?d.defaultDays:d.defaultWeeks)}" ${dl?'':'disabled'} title="negative = after the event" onchange="adminDlOffset(${i},'${d.id}',this.value)">
             <select style="width:auto;padding:4px 6px" ${dl?'':'disabled'} onchange="adminDlUnit(${i},'${d.id}',this.value)">
               <option value="weeks" ${(dl ? dl.days!=null : d.defaultDays!=null)?'':'selected'}>wk</option>
               <option value="days" ${(dl ? dl.days!=null : d.defaultDays!=null)?'selected':''}>d</option>
