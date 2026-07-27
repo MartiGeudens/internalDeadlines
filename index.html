@@ -127,15 +127,16 @@
     <h2>&#128260; Weekly tasks for your function</h2>
     <p class="muted" id="weeklyTaskList"></p>
     <div class="row" style="align-items:flex-end">
-      <div style="max-width:150px"><label>From</label><input type="date" id="wtFrom"></div>
-      <div style="max-width:150px"><label>Until</label><input type="date" id="wtUntil"></div>
+      <div style="max-width:150px"><label>From</label><input type="date" id="wtFrom" onchange="wtPeriods=null; document.getElementById('wtPeriodNote').textContent=''"></div>
+      <div style="max-width:150px"><label>Until</label><input type="date" id="wtUntil" onchange="wtPeriods=null; document.getElementById('wtPeriodNote').textContent=''"></div>
       <div style="max-width:190px"><button class="primary" onclick="addWeeklyTasks()">Add weekly tasks</button></div>
     </div>
     <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap">
       <span class="muted">Quick period:</span>
       <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWtPeriod('s1')">Semester 1</button>
       <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWtPeriod('s2')">Semester 2</button>
-      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWtPeriod('year')">Whole year</button>
+      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWtPeriod('both')">Semester 1 &amp; 2</button>
+      <span class="muted" id="wtPeriodNote"></span>
     </div>
   </div>
 
@@ -215,15 +216,16 @@
     <div id="weeklyItemList"></div>
     <div class="row" style="align-items:flex-end; margin-top:12px">
       <div style="max-width:170px"><label>Responsible</label><input id="weeklyResp" placeholder="e.g. Luca"></div>
-      <div style="max-width:150px"><label>From</label><input type="date" id="weeklyFrom"></div>
-      <div style="max-width:150px"><label>Until</label><input type="date" id="weeklyUntil"></div>
+      <div style="max-width:150px"><label>From</label><input type="date" id="weeklyFrom" onchange="weeklyPeriods=null; document.getElementById('weeklyPeriodNote').textContent=''"></div>
+      <div style="max-width:150px"><label>Until</label><input type="date" id="weeklyUntil" onchange="weeklyPeriods=null; document.getElementById('weeklyPeriodNote').textContent=''"></div>
       <div style="max-width:170px"><button class="primary" onclick="addWeeklyPosts()">Add weekly posts</button></div>
     </div>
     <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap">
       <span class="muted">Quick period:</span>
       <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWeeklyPeriod('s1')">Semester 1</button>
       <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWeeklyPeriod('s2')">Semester 2</button>
-      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWeeklyPeriod('year')">Whole year</button>
+      <button class="secondary" style="padding:4px 12px; font-size:.82rem" onclick="setWeeklyPeriod('both')">Semester 1 &amp; 2</button>
+      <span class="muted" id="weeklyPeriodNote"></span>
     </div>
   </div>
 
@@ -270,7 +272,7 @@
   </div>
   <div id="adminContent" class="hidden">
   <div id="cfgDirty" class="hidden" style="background:#fff4e0; border:1px solid #e6a23c; border-radius:8px; padding:10px 16px; margin-bottom:16px; font-size:.88rem; color:#8a5a00">
-    &#9998; <b>Unsaved configuration changes</b> — they apply in this session only. Publish to GitHub or download config.json below to keep them.
+    &#9998; <b>Unsaved configuration changes</b> — they apply in this session only. Download config.json below and commit it to keep them.
   </div>
   <div class="card">
     <details class="admin-sec">
@@ -323,7 +325,7 @@
   </div>
   <div class="card">
     <h2>Save configuration</h2>
-    <p class="muted">Changes apply immediately in this session. To make them permanent for everyone, publish <b>config.json</b> directly to GitHub below, or download it and commit manually.</p>
+    <p class="muted">Changes apply immediately in this session. To make them permanent for everyone, download <b>config.json</b> and commit it to the repository.</p>
     <div class="export-bar">
       <button class="secondary" onclick="downloadConfig()">&#11123; Download config.json</button>
       <label class="secondary" style="cursor:pointer; margin:0">
@@ -341,22 +343,6 @@
       <span style="display:flex;align-items:center;gap:6px"><label style="margin:0">Events shown on page</label>
         <input type="number" id="linkShowN" min="1" max="10" value="3" style="width:64px"></span>
     </div>
-    </details>
-  </div>
-  <div class="card">
-    <details class="admin-sec">
-      <summary>&#128640; Publish directly to GitHub</summary>
-      <p class="muted">Commits <b>config.json</b> straight to the repository (triggers automatic redeploy of this site). Requires a fine-grained personal access token with <i>Contents: read &amp; write</i> on this repo only &mdash; the token stays in this browser tab and is never stored or committed.</p>
-    <div class="row">
-      <div><label>Owner</label><input id="ghOwner" placeholder="e.g. martigeudens"></div>
-      <div><label>Repository</label><input id="ghRepo" placeholder="e.g. internalDeadlines"></div>
-      <div style="max-width:130px"><label>Branch</label><input id="ghBranch" value="main"></div>
-    </div>
-    <div class="row" style="margin-top:10px; align-items:flex-end">
-      <div><label>GitHub token</label><input type="password" id="ghToken" placeholder="github_pat_..."></div>
-      <div style="max-width:220px"><button class="primary" onclick="commitToGitHub()">Commit config.json</button></div>
-    </div>
-    <p id="ghStatus" class="muted" style="margin-bottom:0"></p>
     </details>
   </div>
   </div><!-- /adminContent -->
@@ -565,10 +551,6 @@ window.addEventListener('beforeunload', e => { if (configDirty()){ e.preventDefa
 function renderAll(){
   renderRoleSelect(); renderTypeSelect(); renderOtherChecklist(); renderAdmin(); renderWeeklyTaskCard(); renderOverview();
   renderCommTypeSelect(); renderChannelList(); renderCommOtherChecklist(); setWeeklyDefaults(); renderCommOverview();
-  try {
-    const gh = JSON.parse(localStorage.getItem('ghRepoInfo'));
-    if (gh){ ghOwner.value = gh.owner; ghRepo.value = gh.repo; ghBranch.value = gh.branch; }
-  } catch {}
 }
 
 function showTab(t){
@@ -601,39 +583,6 @@ async function unlockAdmin(){
   if (ok){ adminUnlocked = true; document.getElementById('adminPw').value = ''; refreshAdminLock(); }
 }
 
-/* ---------- publish config.json to GitHub ---------- */
-async function commitToGitHub(){
-  const owner = document.getElementById('ghOwner').value.trim();
-  const repo = document.getElementById('ghRepo').value.trim();
-  const branch = document.getElementById('ghBranch').value.trim() || 'main';
-  const token = document.getElementById('ghToken').value.trim();
-  const status = document.getElementById('ghStatus');
-  if (!owner || !repo || !token){ status.innerHTML = '<span class="warn">Fill in owner, repository and token.</span>'; return; }
-  localStorage.setItem('ghRepoInfo', JSON.stringify({ owner, repo, branch }));
-  const headers = { 'Authorization':'Bearer '+token, 'Accept':'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28' };
-  const api = `https://api.github.com/repos/${owner}/${repo}/contents/config.json`;
-  status.textContent = 'Committing…';
-  try {
-    let sha;
-    const cur = await fetch(`${api}?ref=${branch}`, { headers });
-    if (cur.ok) sha = (await cur.json()).sha;
-    const body = {
-      message: 'Update deadline config via admin page',
-      content: btoa(unescape(encodeURIComponent(JSON.stringify(config, null, 2)))),
-      branch
-    };
-    if (sha) body.sha = sha;
-    const res = await fetch(api, { method:'PUT', headers, body: JSON.stringify(body) });
-    if (res.ok){
-      const j = await res.json();
-      status.innerHTML = `&#9989; Committed! (<a href="${j.commit.html_url}" target="_blank">view commit</a>) The site redeploys automatically in ~1 minute.`;
-      markConfigSaved();
-    } else {
-      const err = await res.json().catch(() => ({}));
-      status.innerHTML = `<span class="warn">GitHub error ${res.status}: ${esc(err.message || 'unknown')}. Check token permissions (Contents: read &amp; write) and repo name.</span>`;
-    }
-  } catch(e){ status.innerHTML = `<span class="warn">Network error: ${esc(e.message)}</span>`; }
-}
 
 function renderRoleSelect(){
   const s = document.getElementById('roleSelect');
@@ -666,13 +615,21 @@ function renderWeeklyTaskCard(){
   const f = document.getElementById('wtFrom');
   if (f && !f.value) setWtPeriod('s1');
 }
+let wtPeriods = null; // array of [from, until] when a multi-range preset is active
 function setWtPeriod(preset){
-  const ay = config.academicYear || {};
-  const s1 = ay.semester1Start || '2026-09-21', s2 = ay.semester2Start || '2027-02-08';
-  const plus13w = s => { const e = new Date(s + 'T12:00:00'); e.setDate(e.getDate() + 13*7 - 1); return isoDate(e); };
-  const p = { s1:[s1, plus13w(s1)], s2:[s2, plus13w(s2)], year:[s1, plus13w(s2)] }[preset];
-  document.getElementById('wtFrom').value = p[0];
-  document.getElementById('wtUntil').value = p[1];
+  const r = semesterRanges();
+  const note = document.getElementById('wtPeriodNote');
+  if (preset === 'both'){
+    wtPeriods = [r.s1, r.s2];
+    document.getElementById('wtFrom').value = r.s1[0];
+    document.getElementById('wtUntil').value = r.s2[1];
+    if (note) note.textContent = '(both semesters, nothing between them)';
+  } else {
+    wtPeriods = null;
+    document.getElementById('wtFrom').value = r[preset][0];
+    document.getElementById('wtUntil').value = r[preset][1];
+    if (note) note.textContent = '';
+  }
 }
 function addWeeklyTasks(){
   const role = currentRole();
@@ -680,19 +637,21 @@ function addWeeklyTasks(){
   if (!tasks.length) return alert('No weekly tasks defined for this function (add them in the Admin tab).');
   const from = document.getElementById('wtFrom').value, until = document.getElementById('wtUntil').value;
   if (!from || !until) return alert('Fill in the From and Until dates of the period.');
-  const start = new Date(from + 'T12:00:00'), end = new Date(until + 'T12:00:00');
-  if (isNaN(start) || isNaN(end) || start > end) return alert('Invalid period: "From" must be before "Until".');
+  if (new Date(from) > new Date(until)) return alert('Invalid period: "From" must be before "Until".');
+  const ranges = (wtPeriods || [[from, until]]).map(([a,b]) => [new Date(a+'T12:00:00'), new Date(b+'T12:00:00')]);
   const resp = role.headResponsible || ''; // always the function's head responsible
   // all occurrences are grouped under ONE "Weekly tasks" activity, so the Excel export
   // keeps one header row instead of hundreds of separate activities
   const rows = [];
   tasks.forEach(t => {
-    const d = new Date(start);
-    while (d.getDay() !== t.day) d.setDate(d.getDate() + 1);
-    while (d <= end){
-      rows.push({ name:t.name, days:0, date:new Date(d), status:'To Do', resp, weekly:true });
-      d.setDate(d.getDate() + 7);
-    }
+    ranges.forEach(([start, end]) => {
+      const d = new Date(start);
+      while (d.getDay() !== t.day) d.setDate(d.getDate() + 1);
+      while (d <= end){
+        rows.push({ name:t.name, days:0, date:new Date(d), status:'To Do', resp, weekly:true });
+        d.setDate(d.getDate() + 7);
+      }
+    });
   });
   if (!rows.length) return alert('The chosen weekday(s) do not occur in the selected period.');
   let act = activities.find(a => a.weeklyTask);
@@ -974,8 +933,8 @@ function addWeeklyPosts(){
   const from = document.getElementById('weeklyFrom').value;
   const until = document.getElementById('weeklyUntil').value;
   if (!from || !until) return alert('Fill in the From and Until dates of the period.');
-  const start = new Date(from + 'T12:00:00'), end = new Date(until + 'T12:00:00');
-  if (isNaN(start) || isNaN(end) || start > end) return alert('Invalid period: "From" must be before "Until".');
+  if (new Date(from) > new Date(until)) return alert('Invalid period: "From" must be before "Until".');
+  const ranges = (weeklyPeriods || [[from, until]]).map(([a,b]) => [new Date(a+'T12:00:00'), new Date(b+'T12:00:00')]);
   // nothing added yet? use the current input fields as a single item, so the quick flow keeps working
   const items = weeklyItems.length ? weeklyItems : [{
     name: document.getElementById('weeklyName').value.trim() || 'Weekly overview',
@@ -985,12 +944,14 @@ function addWeeklyPosts(){
   }];
   const deadlines = [];
   items.forEach(it => {
-    const d = new Date(start);
-    while (d.getDay() !== it.day) d.setDate(d.getDate() + 1); // first occurrence of the chosen weekday
-    while (d <= end){
-      deadlines.push({ name:`${it.name} — ${it.ch}`, date:new Date(d), time:it.time, status:'To Do', resp, recurring:true });
-      d.setDate(d.getDate() + 7);
-    }
+    ranges.forEach(([start, end]) => {
+      const d = new Date(start);
+      while (d.getDay() !== it.day) d.setDate(d.getDate() + 1); // first occurrence of the chosen weekday
+      while (d <= end){
+        deadlines.push({ name:`${it.name} — ${it.ch}`, date:new Date(d), time:it.time, status:'To Do', resp, recurring:true });
+        d.setDate(d.getDate() + 7);
+      }
+    });
   });
   if (!deadlines.length) return alert('The chosen weekday(s) do not occur in the selected period.');
   deadlines.sort((a,b) => (a.date - b.date) || String(a.time).localeCompare(String(b.time)));
@@ -1004,13 +965,29 @@ function addWeeklyPosts(){
 }
 const isoDate = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 /* semester = 13 weeks from its start date (config.academicYear) */
-function setWeeklyPeriod(preset){
+function semesterRanges(){
   const ay = config.academicYear || {};
   const s1 = ay.semester1Start || '2026-09-21', s2 = ay.semester2Start || '2027-02-08';
   const plus13w = s => { const e = new Date(s + 'T12:00:00'); e.setDate(e.getDate() + 13*7 - 1); return isoDate(e); };
-  const p = { s1:[s1, plus13w(s1)], s2:[s2, plus13w(s2)], year:[s1, plus13w(s2)] }[preset];
-  document.getElementById('weeklyFrom').value = p[0];
-  document.getElementById('weeklyUntil').value = p[1];
+  return { s1:[s1, plus13w(s1)], s2:[s2, plus13w(s2)] };
+}
+/* "Semester 1 & 2" = both semesters as TWO separate ranges, so nothing is generated
+   in the exam/holiday period between them (unlike one continuous range). */
+let weeklyPeriods = null; // array of [from, until] when a multi-range preset is active
+function setWeeklyPeriod(preset){
+  const r = semesterRanges();
+  const note = document.getElementById('weeklyPeriodNote');
+  if (preset === 'both'){
+    weeklyPeriods = [r.s1, r.s2];
+    document.getElementById('weeklyFrom').value = r.s1[0];
+    document.getElementById('weeklyUntil').value = r.s2[1];
+    if (note) note.textContent = '(both semesters, nothing between them)';
+  } else {
+    weeklyPeriods = null;
+    document.getElementById('weeklyFrom').value = r[preset][0];
+    document.getElementById('weeklyUntil').value = r[preset][1];
+    if (note) note.textContent = '';
+  }
 }
 function setWeeklyDefaults(){
   const f = document.getElementById('weeklyFrom');
