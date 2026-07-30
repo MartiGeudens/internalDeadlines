@@ -201,9 +201,9 @@
   </div>
 
   <div class="card">
-    <h2>2. Weekly recurring posts</h2>
-    <p class="muted">For posts that go out every week at the same moment (e.g. the weekly overview). Build a list of weekly posts (multiple channels at once), pick the period, and one post per week is generated for each. They follow the same collision rules, statuses and exports as regular posts.</p>
-    <label>Build the weekly post list</label>
+    <h2>2. Recurring posts</h2>
+    <p class="muted">For posts that come back at a fixed moment (e.g. the weekly overview). Build a list of recurring posts (multiple channels at once), set how much time there is between two posts (weekly, every 2 weeks, ...), pick the period, and all occurrences are generated. They follow the same collision rules, statuses and exports as regular posts.</p>
+    <label>Build the list of recurring posts</label>
     <div class="row" style="align-items:flex-end">
       <div style="max-width:220px"><label>Post name</label><input id="weeklyName" placeholder="e.g. Weekly overview" value="Weekly overview"></div>
       <div style="max-width:190px"><label>Channel</label><input id="weeklyChannel" list="channelList" placeholder="e.g. Instagram story"></div>
@@ -212,6 +212,13 @@
         <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
       </select></div>
       <div style="max-width:110px"><label>Time</label><input type="time" id="weeklyTime" value="18:00"></div>
+      <div style="max-width:150px"><label>Time between posts</label>
+        <select id="weeklyEvery">
+          <option value="1" selected>every week</option>
+          <option value="2">every 2 weeks</option>
+          <option value="3">every 3 weeks</option>
+          <option value="4">every 4 weeks</option>
+        </select></div>
       <div style="max-width:120px"><button class="secondary" onclick="addWeeklyItem()">+ Add</button></div>
     </div>
     <div id="weeklyItemList"></div>
@@ -219,7 +226,7 @@
       <div style="max-width:170px"><label>Responsible</label><input id="weeklyResp" placeholder="e.g. Luca"></div>
       <div style="max-width:150px"><label>From</label><input type="date" id="weeklyFrom" onchange="weeklyPeriods=null; document.getElementById('weeklyPeriodNote').textContent=''"></div>
       <div style="max-width:150px"><label>Until</label><input type="date" id="weeklyUntil" onchange="weeklyPeriods=null; document.getElementById('weeklyPeriodNote').textContent=''"></div>
-      <div style="max-width:170px"><button class="primary" onclick="addWeeklyPosts()">Add weekly posts</button></div>
+      <div style="max-width:190px"><button class="primary" onclick="addWeeklyPosts()">Add recurring posts</button></div>
     </div>
     <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap">
       <span class="muted">Quick period:</span>
@@ -1763,14 +1770,16 @@ function addWeeklyItem(){
   const name = document.getElementById('weeklyName').value.trim() || 'Weekly overview';
   const ch = document.getElementById('weeklyChannel').value.trim() || 'Instagram post';
   const day = parseInt(document.getElementById('weeklyDay').value); // 0=Sun .. 6=Sat (JS getDay)
-  const time = document.getElementById('weeklyTime').value || '18:00';
-  weeklyItems.push({ name, ch, day, time });
+  const time = document.getElementById('weeklyTime').value || DEFAULT_POST_TIME;
+  const every = parseInt(document.getElementById('weeklyEvery').value) || 1; // weeks between posts
+  weeklyItems.push({ name, ch, day, time, every });
   document.getElementById('weeklyChannel').value = '';
   renderWeeklyItems();
 }
+const everyLabel = n => (n||1) > 1 ? `every ${n} weeks` : 'weekly';
 function renderWeeklyItems(){
   document.getElementById('weeklyItemList').innerHTML = weeklyItems.map((it,i) =>
-    `<span class="tag">${esc(it.name)} — ${esc(it.ch)} (${DAY_NAMES[it.day]} ${it.time}) <a style="cursor:pointer;color:#b33" onclick="weeklyItems.splice(${i},1); renderWeeklyItems()">&times;</a></span>`).join('');
+    `<span class="tag">${esc(it.name)} — ${esc(it.ch)} (${DAY_NAMES[it.day]} ${it.time}, ${everyLabel(it.every)}) <a style="cursor:pointer;color:#b33" onclick="weeklyItems.splice(${i},1); renderWeeklyItems()">&times;</a></span>`).join('');
 }
 function addWeeklyPosts(){
   const resp = document.getElementById('weeklyResp').value.trim();
@@ -1784,11 +1793,12 @@ function addWeeklyPosts(){
     name: document.getElementById('weeklyName').value.trim() || 'Weekly overview',
     ch: document.getElementById('weeklyChannel').value.trim() || 'Instagram post',
     day: parseInt(document.getElementById('weeklyDay').value),
-    time: document.getElementById('weeklyTime').value || DEFAULT_POST_TIME
+    time: document.getElementById('weeklyTime').value || DEFAULT_POST_TIME,
+    every: parseInt(document.getElementById('weeklyEvery').value) || 1
   }];
   const deadlines = [];
   items.forEach(it => {
-    weeklyDates(ranges, it.day).forEach(date => {
+    weeklyDates(ranges, it.day, it.every).forEach(date => {
       deadlines.push({ name:`${it.name} — ${it.ch}`, date, time:it.time, status:'To Do', resp, recurring:true });
     });
   });
@@ -1829,13 +1839,15 @@ function applyPeriodPreset(preset, fromId, untilId, noteId){
 function periodRanges(presetRanges, from, until){
   return (presetRanges || [[from, until]]).map(([a,b]) => [atNoon(a), atNoon(b)]);
 }
-/* Every date within `ranges` that falls on weekday `day` (0=Sunday .. 6=Saturday). */
-function weeklyDates(ranges, day){
+/* Every date within `ranges` that falls on weekday `day` (0=Sunday .. 6=Saturday).
+   `everyWeeks` is the gap between two posts (1 = weekly, 2 = every other week, ...). */
+function weeklyDates(ranges, day, everyWeeks = 1){
+  const step = 7 * Math.max(1, everyWeeks||1);
   const out = [];
   ranges.forEach(([start, end]) => {
     const d = new Date(start);
     while (d.getDay() !== day) d.setDate(d.getDate() + 1); // first occurrence of the weekday
-    while (d <= end){ out.push(new Date(d)); d.setDate(d.getDate() + 7); }
+    while (d <= end){ out.push(new Date(d)); d.setDate(d.getDate() + step); }
   });
   return out;
 }
