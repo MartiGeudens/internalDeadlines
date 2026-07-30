@@ -723,6 +723,13 @@ const DEFAULT_CONFIG = {
       "channel": "Instagram story",
       "defaultDaysBefore": 14,
       "defaultTime": "18:00"
+    },
+    {
+      "id": "reel",
+      "name": "Reel",
+      "channel": "Instagram reel",
+      "defaultDaysBefore": 7,
+      "defaultTime": "18:00"
     }
   ],
   "eventTypes": [
@@ -816,7 +823,8 @@ const DEFAULT_CONFIG = {
           "weeks": 3
         }
       ],
-      "commPlan": []
+      "commPlan": [],
+      "dlOnly": true
     },
     {
       "id": "cantus",
@@ -1225,6 +1233,12 @@ const DEFAULT_CONFIG = {
           "time": "18:00"
         },
         {
+          "type": "reel",
+          "daysBefore": 7,
+          "time": "18:00",
+          "note": "Input from function expected, teams post for discussing 'what' and 'when'."
+        },
+        {
           "type": "reminderStory",
           "daysBefore": 3,
           "time": "18:00"
@@ -1594,7 +1608,8 @@ function renderOverview(){
 /* ---------- communication planner ---------- */
 function renderCommTypeSelect(){
   const s = document.getElementById('commType');
-  s.innerHTML = config.eventTypes.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('') + '<option value="__other">Other…</option>';
+  // dlOnly types (e.g. Fakparty) exist for the deadline planner only
+  s.innerHTML = config.eventTypes.filter(e => !e.dlOnly).map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('') + '<option value="__other">Other…</option>';
   s.onchange = () => {
     document.getElementById('commOtherPanel').classList.toggle('hidden', s.value !== '__other');
     renderCommXPanel();
@@ -2021,7 +2036,7 @@ function parseDateCell(v){
 }
 function matchEventType(v, mode){
   const s = String(v||'').trim().toLowerCase();
-  return config.eventTypes.find(e => (mode === 'comm' || !e.commOnly) &&
+  return config.eventTypes.find(e => (mode === 'comm' ? !e.dlOnly : !e.commOnly) &&
     (e.name.toLowerCase() === s || e.id.toLowerCase() === s)) || null;
 }
 
@@ -2170,7 +2185,7 @@ function renderPending(mode){
   const body = document.getElementById(mode==='dl' ? 'dlPendingBody' : 'commPendingBody');
   const list = pendingActs[mode];
   card.classList.toggle('hidden', !list.length);
-  const typeOpts = config.eventTypes.filter(e => mode === 'comm' || !e.commOnly)
+  const typeOpts = config.eventTypes.filter(e => mode === 'comm' ? !e.dlOnly : !e.commOnly)
     .map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('');
   body.innerHTML = list.map((a,i) => {
     // imported with a recognised event type: review its deadlines (or accept as-is)
@@ -2541,8 +2556,13 @@ function renderAdmin(){
   et.innerHTML = config.eventTypes.map((e,i) => `
     <div class="et-block">
       <h3><input type="text" value="${esc(e.name)}" style="max-width:240px" onchange="config.eventTypes[${i}].name=this.value; renderTypeSelect(); renderCommTypeSelect()">
-        <span style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.8rem;color:#555">
-          <input type="checkbox" style="width:auto" ${e.commOnly?'checked':''} onchange="adminSetCommOnly(${i},this.checked)"> communication planner only
+        <span style="display:flex;align-items:center;gap:12px;font-weight:400;font-size:.8rem;color:#555">
+          <label style="display:flex;align-items:center;gap:5px;margin:0;font-weight:400;font-size:.8rem;color:#555">
+            <input type="checkbox" style="width:auto" ${e.commOnly?'checked':''} ${e.dlOnly?'disabled':''} onchange="adminSetOnly(${i},'commOnly',this.checked)"> communication planner only
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;margin:0;font-weight:400;font-size:.8rem;color:#555">
+            <input type="checkbox" style="width:auto" ${e.dlOnly?'checked':''} ${e.commOnly?'disabled':''} onchange="adminSetOnly(${i},'dlOnly',this.checked)"> deadline planner only
+          </label>
         </span>
         <button class="danger" onclick="config.eventTypes.splice(${i},1); renderAll()">remove event type</button></h3>
       <details ${adminOpen[e.id+':dl']?'open':''} ${e.commOnly?'style="opacity:.5"':''} ontoggle="adminOpen['${e.id}:dl']=this.open">
@@ -2571,8 +2591,8 @@ function renderAdmin(){
           </div>`; }).join('')}
       </div>
       </details>
-      <details ${adminOpen[e.id+':comm']?'open':''} ontoggle="adminOpen['${e.id}:comm']=this.open">
-        <summary>Communication plan (days before event; negative = after)</summary>
+      <details ${adminOpen[e.id+':comm']?'open':''} ${e.dlOnly?'style="opacity:.5"':''} ontoggle="adminOpen['${e.id}:comm']=this.open">
+        <summary>Communication plan (days before event; negative = after)${e.dlOnly?' — not used, this type is deadline planner only':''}</summary>
         <div class="admin-grid">
           ${(e.commPlan||[]).map((p,pi) => {
             const pt = (config.postTypes||[]).find(t => t.id === p.type);
@@ -2656,10 +2676,12 @@ function adminRemovePostType(i){
   renderAdmin(); renderCommOtherChecklist();
 }
 /* commOnly = only selectable in the communication planner (e.g. Standard/Big activity,
-   for activities without a specific subtype). Its internal deadlines are then irrelevant. */
-function adminSetCommOnly(ei, on){
-  if (on) config.eventTypes[ei].commOnly = true; else delete config.eventTypes[ei].commOnly;
-  renderAdmin(); renderTypeSelect();
+   for activities without a specific subtype); dlOnly = only in the deadline planner
+   (e.g. Fakparty). The unused half of the type is then irrelevant. Mutually exclusive. */
+function adminSetOnly(ei, field, on){
+  const e = config.eventTypes[ei];
+  if (on) e[field] = true; else delete e[field];
+  renderAdmin(); renderTypeSelect(); renderCommTypeSelect();
 }
 /* A commPlan is an ordered LIST: the same post type may appear several times with
    different offsets (e.g. reminder stories at 10, 7 and 3 days), so entries are

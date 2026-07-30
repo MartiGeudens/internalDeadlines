@@ -334,6 +334,13 @@
       "channel": "Instagram story",
       "defaultDaysBefore": 14,
       "defaultTime": "18:00"
+    },
+    {
+      "id": "reel",
+      "name": "Reel",
+      "channel": "Instagram reel",
+      "defaultDaysBefore": 7,
+      "defaultTime": "18:00"
     }
   ],
   "eventTypes": [
@@ -427,7 +434,8 @@
           "weeks": 3
         }
       ],
-      "commPlan": []
+      "commPlan": [],
+      "dlOnly": true
     },
     {
       "id": "cantus",
@@ -834,6 +842,12 @@
           "type": "reminderStory",
           "daysBefore": 7,
           "time": "18:00"
+        },
+        {
+          "type": "reel",
+          "daysBefore": 7,
+          "time": "18:00",
+          "note": "Input from function expected, teams post for discussing 'what' and 'when'."
         },
         {
           "type": "reminderStory",
