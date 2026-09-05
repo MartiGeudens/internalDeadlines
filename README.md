@@ -26,7 +26,7 @@ A static single-page web app for [Industria](https://industria.be) (student asso
    2. Are all the dates of your activities correct?
    3. Is the event type correct for predefined event types (like BSA, Cantus, IFB, ...)?
 5. Add the (head)responsibles for each deadline of the activity (also possible to do later in Excel).
-6. Click on **Confirm import** — all activities land in the **review list** first. For each one, click **Review deadlines** to check, adjust, add or remove its deadline types (or **Add as-is** to accept the predefined ones). Confirmed activities appear chronologically in the year overview.
+6. Click on **Confirm import** — all activities land in the **review list** first. Is the event type itself wrong? Pick another one from the dropdown next to the activity name. For each activity, click **Review deadlines** to check, adjust, add or remove its deadline types (or **Add as-is** to accept the predefined ones). Confirmed activities appear chronologically in the year overview.
 7. If not all your activities were in the Excel, you can add them manually:
    1. Add the name of the activity.
    2. Add the main responsible of the event (also possible to do later in Excel).
@@ -61,7 +61,7 @@ Both planners have an **Import Excel/CSV** button so you don't have to type the 
 
 - Columns: `activityName`, `eventType`, `activityDate` (+ optional `responsible`; the deadline planner also accepts `role`).
 - With a `role` column, only rows matching your selected function are imported — so the praesidium can maintain one central year-plan file.
-- An **import preview** shows what was recognised; unknown event types or invalid dates can be fixed inline before confirming.
+- An **import preview** shows what was recognised. Every cell stays editable there — activity name, event type (a dropdown that only offers the types that apply to this tab), date and responsible — also on rows that were recognised correctly, so a wrong event type or date is corrected before anything enters the planner. Rows skipped because of the role column stay skipped until you press *include anyway*.
 - Use the **Import template** button to get a ready-made file with the right headers.
 - Dates work as real Excel dates, `dd/mm/yyyy` or `yyyy-mm-dd`; CSV with `,` or `;` separators.
 - A file with an **active filter** (on the sheet or on a table) reads fine: the filter definition is ignored, and rows hidden by it are imported as well — so check the preview if you expected to import only the visible rows.

@@ -2192,22 +2192,22 @@ function renderImportPreview(){
     `<b>${ok}</b> row(s) ready to import` +
     (bad ? `, <span class="warn">${bad} need fixing below</span>` : '') +
     (skip ? `, ${skip} skipped (other role)` : '') + '.';
-  const typeOpts = sel => config.eventTypes.map(e => `<option value="${e.id}" ${e.id===sel?'selected':''}>${esc(e.name)}</option>`).join('');
+  // every cell stays editable, also on rows that were recognised correctly:
+  // the preview is the moment to fix anything before it enters the planner.
+  // Only event types that make sense in this tab are offered (no commOnly types
+  // in the deadline import, no dlOnly types in the communication import).
+  const typeOpts = sel => config.eventTypes.filter(e => mode === 'comm' ? !e.dlOnly : !e.commOnly)
+    .map(e => `<option value="${e.id}" ${e.id===sel?'selected':''}>${esc(e.name)}</option>`).join('');
   document.getElementById('importBody').innerHTML = rows.map((r,i) => {
     const cls = r.status==='otherrole' ? 'row-skip' : (r.status!=='ok' ? 'row-bad' : '');
-    const typeCell = r.status==='badtype'
-      ? `<select onchange="fixImportType(${i},this.value)"><option value="">— ${esc(r.rawType)||'?'} —</option>${typeOpts('')}</select>`
-      : esc(config.eventTypes.find(e=>e.id===r.typeId)?.name || r.rawType);
-    const dateCell = r.status==='baddate'
-      ? `<input type="date" value="${r.staged||''}" oninput="pendingImport.rows[${i}].staged=this.value" onblur="commitImportDate(${i})" onkeydown="if(event.key==='Enter')this.blur()">`
-      : (r.date ? fmt(r.date) : esc(r.rawDate));
+    const typeCell = `<select onchange="fixImportType(${i},this.value)">${
+      r.typeId ? '' : `<option value="" selected>— ${esc(r.rawType)||'?'} —</option>`}${typeOpts(r.typeId)}</select>`;
+    const dateCell = `<input type="date" value="${r.staged != null ? r.staged : (r.date ? isoDate(r.date) : '')}" style="width:auto;padding:4px 6px" oninput="pendingImport.rows[${i}].staged=this.value" onblur="commitImportDate(${i})" onkeydown="if(event.key==='Enter')this.blur()">${r.date ? '' : ` <span class="warn">${esc(r.rawDate)}</span>`}`;
     const statusTxt = { ok:'✓ ready', otherrole:'skipped (other role)', badtype:'unknown event type', baddate:'invalid date', noname:'missing name' }[r.status];
     const statusCell = r.status==='otherrole'
       ? `${statusTxt} <button class="secondary" style="padding:2px 8px;font-size:.78rem" onclick="includeImportRow(${i})">include anyway</button>`
       : statusTxt;
-    const nameCell = r.status==='noname'
-      ? `<input type="text" placeholder="Activity name…" value="${esc(r.stagedName||'')}" oninput="pendingImport.rows[${i}].stagedName=this.value" onblur="commitImportName(${i})" onkeydown="if(event.key==='Enter')this.blur()">`
-      : (esc(r.name)||'<i>?</i>');
+    const nameCell = `<input type="text" placeholder="Activity name…" value="${esc(r.stagedName != null ? r.stagedName : r.name)}" style="min-width:170px;padding:4px 8px" oninput="pendingImport.rows[${i}].stagedName=this.value" onblur="commitImportName(${i})" onkeydown="if(event.key==='Enter')this.blur()">`;
     const respCell = r.status==='otherrole' ? esc(r.resp)
       : `<input type="text" placeholder="Responsible…" value="${esc(r.resp)}" style="max-width:140px;padding:4px 8px" onchange="pendingImport.rows[${i}].resp=this.value.trim()">`;
     return `<tr class="${cls}"><td>${nameCell}</td><td>${typeCell}</td><td>${dateCell}</td><td>${respCell}</td>
@@ -2215,28 +2215,39 @@ function renderImportPreview(){
   }).join('');
   document.getElementById('importOverlay').classList.remove('hidden');
 }
+/* Re-evaluate a preview row after an edit. A row skipped because of the role
+   column stays skipped until "include anyway" is used on it. */
+function refreshRowStatus(r){
+  if (r.status === 'otherrole') return;
+  r.status = !r.name ? 'noname' : (!r.typeId ? 'badtype' : (!r.date ? 'baddate' : 'ok'));
+}
 function includeImportRow(i){
   const r = pendingImport.rows[i];
-  r.status = !r.name ? 'noname' : (!r.typeId ? 'badtype' : (!r.date ? 'baddate' : 'ok'));
+  r.status = 'ok'; refreshRowStatus(r);
   renderImportPreview();
 }
-function fixImportType(i, typeId){ const r = pendingImport.rows[i]; if (typeId){ r.typeId = typeId; if (r.date) r.status = 'ok'; else r.status = 'baddate'; } renderImportPreview(); }
+function fixImportType(i, typeId){
+  const r = pendingImport.rows[i];
+  r.typeId = typeId; // empty again = back to "unknown event type"
+  refreshRowStatus(r);
+  renderImportPreview();
+}
 function commitImportName(i){
   const r = pendingImport.rows[i];
-  const val = (r.stagedName||'').trim();
-  if (!val) return; // still empty: keep the input as-is
-  r.name = val;
-  r.status = !r.typeId ? 'badtype' : (!r.date ? 'baddate' : 'ok');
+  if (r.stagedName == null) return; // field not touched
+  r.name = r.stagedName.trim();
+  delete r.stagedName;
+  refreshRowStatus(r);
   renderImportPreview();
 }
 function commitImportDate(i){
   const r = pendingImport.rows[i];
-  const val = r.staged;
-  if (!val) return; // still typing / empty: keep the input as-is
-  const d = atNoon(val);
-  if (isNaN(d) || d.getFullYear() < 2000) return; // ignore partial years like 0002
+  if (r.staged == null) return; // field not touched
+  const d = r.staged ? atNoon(r.staged) : null;
+  if (r.staged && (isNaN(d) || d.getFullYear() < 2000)) return; // still typing (year 0002)
   r.date = d;
-  if (r.typeId) r.status = 'ok';
+  delete r.staged;
+  refreshRowStatus(r);
   renderImportPreview();
 }
 function cancelImport(){ pendingImport = null; document.getElementById('importOverlay').classList.add('hidden'); }
@@ -2281,7 +2292,10 @@ function renderPending(mode){
   body.innerHTML = list.map((a,i) => {
     // imported with a recognised event type: review its deadlines (or accept as-is)
     if (mode === 'dl' && a.typeId) return `<tr>
-    <td><b>${esc(a.name)}</b> <span class="muted">(${esc(a.typeName)})</span></td>
+    <td><b>${esc(a.name)}</b>
+      <select style="width:auto;padding:3px 6px;margin-left:6px" title="Wrong event type? Pick another one here." onchange="setPendingType(${i},this.value)">
+        ${config.eventTypes.filter(e => !e.commOnly).map(e => `<option value="${e.id}" ${e.id===a.typeId?'selected':''}>${esc(e.name)}</option>`).join('')}
+      </select></td>
     <td><input value="${esc(a.resp)}" placeholder="Responsible…" style="max-width:150px;padding:4px 8px" onchange="pendingActs.dl[${i}].resp=this.value.trim(); saveState()"></td>
     <td>${fmt(a.date)}</td>
     <td style="white-space:nowrap">
@@ -2301,6 +2315,15 @@ function renderPending(mode){
       <button class="secondary" style="padding:4px 10px" onclick="manualPending('${mode}',${i})">Set up manually</button>
       <button class="danger" onclick="pendingActs['${mode}'].splice(${i},1); renderPending('${mode}'); saveState()">remove</button>
     </td></tr>`; }).join('');
+}
+/* Wrong event type recognised on import? Reassign it here, before the activity
+   (and its deadlines) enter the year overview. */
+function setPendingType(i, id){
+  const et = config.eventTypes.find(e => e.id === id);
+  if (!et) return;
+  const a = pendingActs.dl[i];
+  a.typeId = et.id; a.typeName = et.name;
+  renderPending('dl'); saveState();
 }
 /* Load an imported activity into the Add activity form with its event type's
    deadlines pre-checked in the checklist, so they can be adjusted/added/removed. */
