@@ -64,6 +64,7 @@ Both planners have an **Import Excel/CSV** button so you don't have to type the 
 - An **import preview** shows what was recognised; unknown event types or invalid dates can be fixed inline before confirming.
 - Use the **Import template** button to get a ready-made file with the right headers.
 - Dates work as real Excel dates, `dd/mm/yyyy` or `yyyy-mm-dd`; CSV with `,` or `;` separators.
+- A file with an **active filter** (on the sheet or on a table) reads fine: the filter definition is ignored, and rows hidden by it are imported as well — so check the preview if you expected to import only the visible rows.
 
 ### Saving your work
 

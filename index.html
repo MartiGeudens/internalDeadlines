@@ -2088,20 +2088,63 @@ function matchEventType(v, mode){
     (e.name.toLowerCase() === s || e.id.toLowerCase() === s)) || null;
 }
 
+/* ---------- reading an Excel/CSV file ----------
+   ExcelJS 4.4 trips over the filter definitions Excel writes when a filter is
+   active on a sheet or on a table ("Unexpected xml node in parseOpen:
+   dateGroupItem" when someone filters per month/year). The data itself is fine,
+   so on a read error the <autoFilter> blocks are stripped from an IN-MEMORY copy
+   and the read is retried; the user's file on disk is never touched. Rows hidden
+   by such a filter are imported as well — ExcelJS reads every row. JSZip is only
+   fetched when that repair is actually needed. */
+const JSZIP_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+function loadScript(src){
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error('could not load ' + src));
+    document.head.appendChild(s);
+  });
+}
+async function stripFilterDefs(buf){
+  if (!window.JSZip) await loadScript(JSZIP_CDN);
+  const zip = await JSZip.loadAsync(buf);
+  let changed = false;
+  for (const path of Object.keys(zip.files)){
+    if (!/^xl\/(tables|worksheets)\/[^\/]+\.xml$/.test(path)) continue;
+    const xml = await zip.file(path).async('string');
+    const clean = xml.replace(/<autoFilter\b[^>]*\/>/g, '').replace(/<autoFilter\b[\s\S]*?<\/autoFilter>/g, '');
+    if (clean !== xml){ zip.file(path, clean); changed = true; }
+  }
+  return changed ? zip.generateAsync({ type:'arraybuffer' }) : null;
+}
+async function firstSheetRows(buf){
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(buf);
+  const ws = wb.worksheets[0];
+  if (!ws) throw new Error('no worksheet found in this file.');
+  const rows = [];
+  ws.eachRow(r => rows.push(r.values.slice(1).map(c => (c && c.result !== undefined) ? c.result : c)));
+  return rows;
+}
+/* Rows of the first sheet (or of the CSV) as arrays of cell values. */
+async function readSheetRows(file){
+  if (file.name.toLowerCase().endsWith('.csv')){
+    const text = await file.text();
+    return text.split(/\r?\n/).filter(l => l.trim()).map(l => splitCsvLine(l));
+  }
+  const buf = await file.arrayBuffer();
+  try { return await firstSheetRows(buf); }
+  catch(e){
+    const repaired = await stripFilterDefs(buf);
+    if (!repaired) throw e;          // nothing to repair: it is a different problem
+    return firstSheetRows(repaired);
+  }
+}
+
 async function startImport(ev, mode){
   const file = ev.target.files[0]; ev.target.value = ''; if (!file) return;
   let rows = [];
-  try {
-    if (file.name.toLowerCase().endsWith('.csv')){
-      const text = await file.text();
-      rows = text.split(/\r?\n/).filter(l => l.trim()).map(l => splitCsvLine(l));
-    } else {
-      const wb = new ExcelJS.Workbook();
-      await wb.xlsx.load(await file.arrayBuffer());
-      const ws = wb.worksheets[0];
-      ws.eachRow(r => rows.push(r.values.slice(1).map(c => (c && c.result !== undefined) ? c.result : c)));
-    }
-  } catch(e){ return alert('Could not read file: ' + e.message); }
+  try { rows = await readSheetRows(file); }
+  catch(e){ return alert('Could not read file: ' + e.message); }
   if (rows.length < 2) return alert('File appears to be empty (need a header row + data rows).');
 
   const cols = rows[0].map(h => HEAD_MAP[normHead(h)] || null);
@@ -2346,17 +2389,8 @@ let linkImport = null; // [{name,date,checked,timeNote}]
 async function startLinkImport(ev){
   const file = ev.target.files[0]; ev.target.value = ''; if (!file) return;
   let rows = [];
-  try {
-    if (file.name.toLowerCase().endsWith('.csv')){
-      const text = await file.text();
-      rows = text.split(/\r?\n/).filter(l => l.trim()).map(l => splitCsvLine(l));
-    } else {
-      const wb = new ExcelJS.Workbook();
-      await wb.xlsx.load(await file.arrayBuffer());
-      const ws = wb.worksheets[0];
-      ws.eachRow(r => rows.push(r.values.slice(1).map(c => (c && c.result !== undefined) ? c.result : c)));
-    }
-  } catch(e){ return alert('Could not read file: ' + e.message); }
+  try { rows = await readSheetRows(file); }
+  catch(e){ return alert('Could not read file: ' + e.message); }
   if (rows.length < 2) return alert('File appears to be empty (need a header row + data rows).');
 
   const cols = rows[0].map(h => HEAD_MAP[normHead(h)] || null);
