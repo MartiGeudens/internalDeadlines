@@ -522,7 +522,36 @@
       "id": "peme-activity",
       "name": "PEME-activity",
       "deadlines": [],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "fbEvent",
+          "daysBefore": 21,
+          "time": "18:00"
+        },
+        {
+          "type": "announcement",
+          "daysBefore": 14,
+          "time": "18:00"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 10,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 7,
+          "time": "18:00",
+          "note": "only if not full yet"
+        },
+        {
+          "type": "reminderStory",
+          "daysBefore": 3,
+          "time": "18:00",
+          "note": "only if not full yet"
+        }
+      ]
     },
     {
       "id": "oed",
@@ -743,7 +772,14 @@
       "id": "sector-night",
       "name": "Sector Night",
       "deadlines": [],
-      "commPlan": []
+      "commPlan": [
+        {
+          "type": "plan-meeting-post",
+          "daysBefore": 60,
+          "time": "18:00",
+          "x": "Bedrijvenrelaties"
+        }
+      ]
     },
     {
       "id": "standard-activity-enrollment",
